@@ -26,3 +26,6 @@ web/.next/
 
 # Editor directories and files
 .vscode/*
+
+# eslint
+.eslintrc.json
