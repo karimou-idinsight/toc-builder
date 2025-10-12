@@ -18,7 +18,7 @@ app.use(express.static(staticPath));
 // API routes
 app.get('/api/hello', (req, res) => {
   res.json({ 
-    message: 'Hello from Express.js backend!',
+    message: '🔥 Hot Reload Test: Hello from Express.js backend!',
     timestamp: new Date().toISOString(),
     port: PORT
   });
@@ -28,9 +28,59 @@ app.get('/api/hello', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK',
-    service: 'Express.js with Static Web App',
+    service: 'Theory of Change Builder API',
     uptime: process.uptime(),
     port: PORT
+  });
+});
+
+// Theory of Change API endpoints
+let tocData = {
+  nodes: [],
+  edges: []
+};
+
+// Get Theory of Change data
+app.get('/api/toc', (req, res) => {
+  res.json(tocData);
+});
+
+// Save Theory of Change data
+app.post('/api/toc', (req, res) => {
+  const { nodes, edges } = req.body;
+  
+  if (!nodes || !edges) {
+    return res.status(400).json({ 
+      error: 'Missing nodes or edges data' 
+    });
+  }
+  
+  tocData = { nodes, edges };
+  
+  res.json({ 
+    message: 'Theory of Change saved successfully',
+    nodeCount: nodes.length,
+    edgeCount: edges.length
+  });
+});
+
+// Get filtered ToC data by node type
+app.get('/api/toc/filter/:nodeType', (req, res) => {
+  const { nodeType } = req.params;
+  
+  const filteredNodes = tocData.nodes.filter(node => 
+    node.data.nodeType === nodeType
+  );
+  
+  const nodeIds = filteredNodes.map(node => node.id);
+  const filteredEdges = tocData.edges.filter(edge =>
+    nodeIds.includes(edge.source) || nodeIds.includes(edge.target)
+  );
+  
+  res.json({
+    nodes: filteredNodes,
+    edges: filteredEdges,
+    filter: nodeType
   });
 });
 

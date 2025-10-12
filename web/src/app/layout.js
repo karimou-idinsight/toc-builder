@@ -1,7 +1,7 @@
-import './globals.css'
+import './styles/globals.css'
 
 export const metadata = {
-  title: 'Next.js + Express.js App',
+  title: 'Theory of change board',
   description: 'A web app built with Next.js and served by Express.js',
 }
 
