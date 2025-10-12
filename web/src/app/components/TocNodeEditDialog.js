@@ -125,52 +125,60 @@ export default function TocNodeEditDialog({
   const handleSave = () => {
     if (!node) return;
 
+    // Validate required fields
+    if (!formData.title.trim()) {
+      alert('Node name is required');
+      return;
+    }
+
     // Update node data
     onSave(node.id, formData);
 
-    // Handle edge changes
-    const currentEdges = board?.edges || [];
-    const currentUpstreamIds = currentEdges
-      .filter(edge => edge.targetId === node.id)
-      .map(edge => edge.sourceId);
-    const currentDownstreamIds = currentEdges
-      .filter(edge => edge.sourceId === node.id)
-      .map(edge => edge.targetId);
+    // Handle edge changes if edge operations are available
+    if (onAddEdge && onDeleteEdge && board?.edges) {
+      const currentEdges = board.edges;
+      const currentUpstreamIds = currentEdges
+        .filter(edge => edge.targetId === node.id)
+        .map(edge => edge.sourceId);
+      const currentDownstreamIds = currentEdges
+        .filter(edge => edge.sourceId === node.id)
+        .map(edge => edge.targetId);
 
-    const newUpstreamIds = upstreamNodes.map(n => n.id);
-    const newDownstreamIds = downstreamNodes.map(n => n.id);
+      const newUpstreamIds = upstreamNodes.map(n => n.id);
+      const newDownstreamIds = downstreamNodes.map(n => n.id);
 
-    // Remove edges that are no longer selected
-    currentUpstreamIds.forEach(sourceId => {
-      if (!newUpstreamIds.includes(sourceId)) {
-        const edgeToRemove = currentEdges.find(e => e.sourceId === sourceId && e.targetId === node.id);
-        if (edgeToRemove && onDeleteEdge) {
-          onDeleteEdge(edgeToRemove.id);
+      // Remove edges that are no longer selected
+      currentUpstreamIds.forEach(sourceId => {
+        if (!newUpstreamIds.includes(sourceId)) {
+          const edgeToRemove = currentEdges.find(e => e.sourceId === sourceId && e.targetId === node.id);
+          if (edgeToRemove) {
+            onDeleteEdge(edgeToRemove.id);
+          }
         }
-      }
-    });
+      });
 
-    currentDownstreamIds.forEach(targetId => {
-      if (!newDownstreamIds.includes(targetId)) {
-        const edgeToRemove = currentEdges.find(e => e.sourceId === node.id && e.targetId === targetId);
-        if (edgeToRemove && onDeleteEdge) {
-          onDeleteEdge(edgeToRemove.id);
+      currentDownstreamIds.forEach(targetId => {
+        if (!newDownstreamIds.includes(targetId)) {
+          const edgeToRemove = currentEdges.find(e => e.sourceId === node.id && e.targetId === targetId);
+          if (edgeToRemove) {
+            onDeleteEdge(edgeToRemove.id);
+          }
         }
-      }
-    });
+      });
 
-    // Add new edges
-    newUpstreamIds.forEach(sourceId => {
-      if (!currentUpstreamIds.includes(sourceId) && onAddEdge) {
-        onAddEdge(sourceId, node.id);
-      }
-    });
+      // Add new edges
+      newUpstreamIds.forEach(sourceId => {
+        if (!currentUpstreamIds.includes(sourceId)) {
+          onAddEdge(sourceId, node.id);
+        }
+      });
 
-    newDownstreamIds.forEach(targetId => {
-      if (!currentDownstreamIds.includes(targetId) && onAddEdge) {
-        onAddEdge(node.id, targetId);
-      }
-    });
+      newDownstreamIds.forEach(targetId => {
+        if (!currentDownstreamIds.includes(targetId)) {
+          onAddEdge(node.id, targetId);
+        }
+      });
+    }
 
     onClose();
   };
@@ -344,7 +352,13 @@ export default function TocNodeEditDialog({
       borderRadius: '0.25rem',
       cursor: 'pointer',
       fontSize: '0.75rem',
-      whiteSpace: 'nowrap'
+      whiteSpace: 'nowrap',
+      transition: 'all 0.2s'
+    },
+    addButtonDisabled: {
+      backgroundColor: '#d1d5db',
+      color: '#9ca3af',
+      cursor: 'not-allowed'
     },
     actions: {
       display: 'flex',
@@ -361,13 +375,23 @@ export default function TocNodeEditDialog({
       border: 'none',
       transition: 'all 0.2s'
     },
-    saveButton: {
-      backgroundColor: '#3b82f6',
-      color: 'white'
+    saveButtonDisabled: {
+      backgroundColor: '#d1d5db',
+      color: '#9ca3af',
+      cursor: 'not-allowed'
     },
     cancelButton: {
       backgroundColor: '#f3f4f6',
       color: '#374151'
+    },
+    saveButton: {
+      backgroundColor: '#3b82f6',
+      color: 'white'
+    },
+    saveButtonDisabled: {
+      backgroundColor: '#d1d5db',
+      color: '#9ca3af',
+      cursor: 'not-allowed'
     }
   };
 
@@ -530,7 +554,10 @@ export default function TocNodeEditDialog({
                 placeholder="Add a tag..."
               />
               <button
-                style={dialogStyles.addButton}
+                style={{
+                  ...dialogStyles.addButton,
+                  ...(newTag.trim() ? {} : dialogStyles.addButtonDisabled)
+                }}
                 onClick={handleAddTag}
                 disabled={!newTag.trim()}
               >
@@ -548,8 +575,12 @@ export default function TocNodeEditDialog({
               Cancel
             </button>
             <button
-              style={{...dialogStyles.button, ...dialogStyles.saveButton}}
+              style={{
+                ...dialogStyles.button, 
+                ...(formData.title.trim() ? dialogStyles.saveButton : dialogStyles.saveButtonDisabled)
+              }}
               onClick={handleSave}
+              disabled={!formData.title.trim()}
             >
               Save Changes
             </button>
