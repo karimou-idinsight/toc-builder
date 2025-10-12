@@ -26,6 +26,7 @@ export default function TocNode({
   onShowCausalPath,
   causalPathMode = false,
   isInCausalPath = false,
+  isCausalPathFocalNode = false,
   allNodes = [],
   board = {},
   onAddEdge = () => {},
@@ -40,10 +41,6 @@ export default function TocNode({
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   const [showEditDialog, setShowEditDialog] = useState(false);
-
-useEffect(() => {
-    console.log('Node props changed:', { node, isDraggable, linkMode });
-}, [node, isDraggable, linkMode]);
 
   const {
     attributes,
@@ -171,13 +168,14 @@ useEffect(() => {
       containerStyle = { ...containerStyle, ...tocNodeStyles.containerConnected };
     }
 
-    // Add causal path highlighting
-    if (causalPathMode && isInCausalPath) {
+    // Highlight the focal node in causal path mode
+    if (causalPathMode && isCausalPathFocalNode) {
       containerStyle = { 
         ...containerStyle, 
         border: '3px solid #f59e0b',
-        boxShadow: '0 0 12px rgba(245, 158, 11, 0.4)',
-        backgroundColor: 'rgba(245, 158, 11, 0.1)'
+        boxShadow: '0 0 20px rgba(245, 158, 11, 0.6)',
+        backgroundColor: 'rgba(245, 158, 11, 0.15)',
+        transform: containerStyle.transform || 'scale(1)',
       };
     }
 

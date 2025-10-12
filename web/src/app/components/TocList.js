@@ -28,6 +28,7 @@ export default function TocList({
   onShowCausalPath,
   causalPathMode,
   causalPathNodes,
+  causalPathFocalNode,
   allNodes,
   board,
   onAddEdge,
@@ -134,23 +135,25 @@ export default function TocList({
           onShowCausalPath={onShowCausalPath}
           causalPathMode={causalPathMode}
           causalPathNodes={causalPathNodes}
+          causalPathFocalNode={causalPathFocalNode}
           allNodes={allNodes}
           board={board}
           onAddEdge={onAddEdge}
           onDeleteEdge={onDeleteEdge}
-        />      <TocListSettingsModal
-        isModalOpen={isModalOpen}
-        setIsModalOpen={setIsModalOpen}
-        list={list}
-        colors={colors}
-        handleColorChange={handleColorChange}
-        onUpdateList={onUpdateList}
-        onDeleteList={onDeleteList}
-        hoveredButton={hoveredButton}
-        setHoveredButton={setHoveredButton}
-        hoveredColor={hoveredColor}
-        setHoveredColor={setHoveredColor}
-      />
+        />
+        <TocListSettingsModal
+          isModalOpen={isModalOpen}
+          setIsModalOpen={setIsModalOpen}
+          list={list}
+          colors={colors}
+          handleColorChange={handleColorChange}
+          onUpdateList={onUpdateList}
+          onDeleteList={onDeleteList}
+          hoveredButton={hoveredButton}
+          setHoveredButton={setHoveredButton}
+          hoveredColor={hoveredColor}
+          setHoveredColor={setHoveredColor}
+        />
     </div>
   );
 }

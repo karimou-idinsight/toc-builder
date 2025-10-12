@@ -23,6 +23,7 @@ export default function TocBoard({ boardId = 'default' }) {
   const [draggableNodes, setDraggableNodes] = useState(new Set()); // Track which nodes are draggable
   const [causalPathMode, setCausalPathMode] = useState(false);
   const [causalPathNodes, setCausalPathNodes] = useState(new Set());
+  const [causalPathFocalNode, setCausalPathFocalNode] = useState(null); // The node that initiated the causal path
 
   // Use custom hooks
   const {
@@ -128,46 +129,84 @@ export default function TocBoard({ boardId = 'default' }) {
     return board.nodes.filter(node => connectedNodeIds.includes(node.id));
   }, [board?.edges, board?.nodes]);
 
-  // Calculate all nodes connected to a given node (direct and indirect)
+  // Get all upstream nodes recursively (nodes that lead to this node)
+  const getUpstreamNodes = useCallback((startNodeId, visited = new Set()) => {
+    if (!board?.edges || visited.has(startNodeId)) return new Set();
+    
+    visited.add(startNodeId);
+    const upstreamNodes = new Set();
+    
+    // Find all edges where this node is the target
+    const incomingEdges = board.edges.filter(edge => edge.targetId === startNodeId);
+    
+    incomingEdges.forEach(edge => {
+      const sourceNodeId = edge.sourceId;
+      upstreamNodes.add(sourceNodeId);
+      
+      // Recursively find upstream nodes of the source
+      const recursiveUpstream = getUpstreamNodes(sourceNodeId, visited);
+      recursiveUpstream.forEach(nodeId => upstreamNodes.add(nodeId));
+    });
+    
+    return upstreamNodes;
+  }, [board?.edges]);
+
+  // Get all downstream nodes recursively (nodes that this node leads to)
+  const getDownstreamNodes = useCallback((startNodeId, visited = new Set()) => {
+    if (!board?.edges || visited.has(startNodeId)) return new Set();
+    
+    visited.add(startNodeId);
+    const downstreamNodes = new Set();
+    
+    // Find all edges where this node is the source
+    const outgoingEdges = board.edges.filter(edge => edge.sourceId === startNodeId);
+    
+    outgoingEdges.forEach(edge => {
+      const targetNodeId = edge.targetId;
+      downstreamNodes.add(targetNodeId);
+      
+      // Recursively find downstream nodes of the target
+      const recursiveDownstream = getDownstreamNodes(targetNodeId, visited);
+      recursiveDownstream.forEach(nodeId => downstreamNodes.add(nodeId));
+    });
+    
+    return downstreamNodes;
+  }, [board?.edges]);
+
+  // Get all connected nodes: upstream + node + downstream
   const getAllConnectedNodes = useCallback((startNodeId) => {
     if (!board?.edges || !board?.nodes) return new Set();
     
-    const visited = new Set();
-    const queue = [startNodeId];
+    const upstreamNodes = getUpstreamNodes(startNodeId);
+    const downstreamNodes = getDownstreamNodes(startNodeId);
     
-    while (queue.length > 0) {
-      const currentNodeId = queue.shift();
-      if (visited.has(currentNodeId)) continue;
-      
-      visited.add(currentNodeId);
-      
-      // Find all edges connected to this node
-      const connectedEdges = board.edges.filter(edge => 
-        edge.sourceId === currentNodeId || edge.targetId === currentNodeId
-      );
-      
-      // Add connected nodes to queue
-      connectedEdges.forEach(edge => {
-        const nextNodeId = edge.sourceId === currentNodeId ? edge.targetId : edge.sourceId;
-        if (!visited.has(nextNodeId)) {
-          queue.push(nextNodeId);
-        }
-      });
-    }
+    // Return union: [upstream, node, downstream]
+    const allConnected = new Set();
     
-    return visited;
-  }, [board?.edges, board?.nodes]);
+    // Add all upstream nodes
+    upstreamNodes.forEach(nodeId => allConnected.add(nodeId));
+    
+    // Add the starting node itself
+    allConnected.add(startNodeId);
+    
+    // Add all downstream nodes
+    downstreamNodes.forEach(nodeId => allConnected.add(nodeId));
+    
+    return allConnected;
+  }, [board?.edges, board?.nodes, getUpstreamNodes, getDownstreamNodes]);
 
   // Causal path mode functions
   const enterCausalPathMode = useCallback((nodeId) => {
     const connectedNodes = getAllConnectedNodes(nodeId);
     setCausalPathNodes(connectedNodes);
+    setCausalPathFocalNode(nodeId);
     setCausalPathMode(true);
   }, [getAllConnectedNodes]);
 
   const exitCausalPathMode = useCallback(() => {
     setCausalPathMode(false);
     setCausalPathNodes(new Set());
+    setCausalPathFocalNode(null);
   }, []);
 
   // Filter edges for causal path mode - only show edges between nodes in the causal path
@@ -308,6 +347,7 @@ export default function TocBoard({ boardId = 'default' }) {
                     onShowCausalPath={enterCausalPathMode}
                     causalPathMode={causalPathMode}
                     causalPathNodes={causalPathNodes}
+                    causalPathFocalNode={causalPathFocalNode}
                     allNodes={board?.nodes || []}
                     board={board}
                     onAddEdge={addEdge}

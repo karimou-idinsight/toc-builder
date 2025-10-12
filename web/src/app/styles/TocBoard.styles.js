@@ -19,7 +19,7 @@ export const tocBoardStyles = {
   boardInner: {
     position: 'relative', // Add relative positioning for edge container
     display: 'flex',
-    gap: spacing.lg,
+    gap: '50px',
     margin: spacing.md,
     minHeight: '100%',
     alignItems: 'flex-start',

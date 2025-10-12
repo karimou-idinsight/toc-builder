@@ -27,6 +27,7 @@ export default function TocListContent({
   onShowCausalPath,
   causalPathMode,
   causalPathNodes,
+  causalPathFocalNode,
   allNodes,
   board,
   onAddEdge,
@@ -53,6 +54,7 @@ export default function TocListContent({
               onShowCausalPath={onShowCausalPath}
               causalPathMode={causalPathMode}
               isInCausalPath={causalPathNodes?.has(node.id) || false}
+              isCausalPathFocalNode={causalPathFocalNode === node.id}
               allNodes={allNodes}
               board={board}
               onAddEdge={onAddEdge}

@@ -8,6 +8,7 @@ web/node_modules/
 
 # Build outputs
 web/.next/
+web/dist
 
 # Environment variables
 .env
