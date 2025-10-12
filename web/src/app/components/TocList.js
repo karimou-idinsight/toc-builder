@@ -115,6 +115,7 @@ export default function TocList({
 
         <TocListContent
           nodes={nodes}
+          listColor={list.color}
           isAddingNode={isAddingNode}
           setIsAddingNode={setIsAddingNode}
           newNodeTitle={newNodeTitle}

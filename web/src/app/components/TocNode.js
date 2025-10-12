@@ -142,6 +142,22 @@ export default function TocNode({
 
   const isConnected = connectedNodes.length > 0;
 
+  const hexToRgb = (hex) => {
+    if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(node.color)) {
+          // Convert hex to rgb
+          let c = node.color.substring(1);
+          if (c.length === 3) {
+            c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+          }
+          const rgb = [
+            parseInt(c.substring(0,2),16),
+            parseInt(c.substring(2,4),16),
+            parseInt(c.substring(4,6),16)
+          ];
+    return rgb;
+    }
+}
+
   const getNodeContainerStyle = () => {
     let containerStyle = {
       ...style,
@@ -163,18 +179,27 @@ export default function TocNode({
     if (isLinkSource) {
       containerStyle = { ...containerStyle, ...tocNodeStyles.containerLinkSource };
     }
-    
+
+    const rgb = hexToRgb(node.color) || [245, 158, 11];
     if (isConnected) {
       containerStyle = { ...containerStyle, ...tocNodeStyles.containerConnected };
+      if (node.color) {
+        containerStyle.borderColor = node.color;
+        // If color is hex, convert to rgba for opacity
+        if (rgb) {
+            containerStyle.backgroundColor = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.1)`; // 10% opacity
+        } else {
+          containerStyle.backgroundColor = node.color;
+        }
+      }
     }
 
     // Highlight the focal node in causal path mode
     if (causalPathMode && isCausalPathFocalNode) {
       containerStyle = { 
         ...containerStyle, 
-        border: '3px solid #f59e0b',
-        boxShadow: '0 0 20px rgba(245, 158, 11, 0.6)',
-        backgroundColor: 'rgba(245, 158, 11, 0.15)',
+        border: `3px solid ${ node.color || '#f59e0b' }`,
+        boxShadow: `0 0 20px rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.6)`,
         transform: containerStyle.transform || 'scale(1)',
       };
     }

@@ -7,6 +7,7 @@ import { tocListContentStyles } from '../styles/TocListContent.styles';
 
 export default function TocListContent({
   nodes,
+  listColor,
   isAddingNode,
   setIsAddingNode,
   newNodeTitle,
@@ -40,7 +41,7 @@ export default function TocListContent({
           {nodes.map(node => (
             <TocNode
               key={node.id}
-              node={node}
+              node={{ ...node, color: listColor }}
               onUpdate={onUpdateNode}
               onDelete={onDeleteNode}
               onDuplicate={onDuplicateNode}
