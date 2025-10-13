@@ -11,10 +11,20 @@ export default function TocNodeFooter({
   onEdit,
   onDuplicate,
   onShowCausalPath,
+  onExitCausalPathMode,
   onDelete,
   hoveredButton,
+  causalPathMode,
+  isCausalPathFocalNode,
   setHoveredButton
 }) {
+  const handleCausalPathClick = () => {
+    if (causalPathMode && isCausalPathFocalNode) {
+      onExitCausalPathMode();
+    } else {
+      onShowCausalPath();
+    }
+  }
   return (
     <div style={{
       display: 'flex',
@@ -87,10 +97,11 @@ export default function TocNodeFooter({
           ...tocNodeStyles.actionButton,
           opacity: 1,
           background: hoveredButton === 'causalpath-ctx' ? '#f3f4f6' : 'transparent',
-          border: 'none'
+          border: 'none',
+          color: causalPathMode && isCausalPathFocalNode ? '#d30fddff' : 'inherit'
         }}
         title="Show Causal Path"
-        onClick={onShowCausalPath}
+        onClick={handleCausalPathClick}
         onMouseEnter={() => setHoveredButton('causalpath-ctx')}
         onMouseLeave={() => setHoveredButton(null)}
       >

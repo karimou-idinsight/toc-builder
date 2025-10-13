@@ -26,6 +26,7 @@ export default function TocList({
   onToggleNodeDraggable,
   onStartLinking,
   onShowCausalPath,
+  onExitCausalPathMode,
   causalPathMode,
   causalPathNodes,
   causalPathFocalNode,
@@ -134,6 +135,7 @@ export default function TocList({
           onToggleNodeDraggable={onToggleNodeDraggable}
           onStartLinking={onStartLinking}
           onShowCausalPath={onShowCausalPath}
+          onExitCausalPathMode={onExitCausalPathMode}
           causalPathMode={causalPathMode}
           causalPathNodes={causalPathNodes}
           causalPathFocalNode={causalPathFocalNode}

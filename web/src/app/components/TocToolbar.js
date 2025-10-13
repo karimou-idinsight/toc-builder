@@ -6,10 +6,8 @@ import { tocToolbarStyles } from '../styles/TocToolbar.styles';
 export default function TocToolbar({
   board,
   linkMode,
-  causalPathMode,
   onStartLinkMode,
   onExitLinkMode,
-  onExitCausalPathMode,
   onAddIntermediateOutcome
 }) {
   const [isClient, setIsClient] = useState(false);
@@ -71,17 +69,7 @@ export default function TocToolbar({
 
       <div style={tocToolbarStyles.actions}>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          {causalPathMode ? (
-            <button
-              style={getButtonStyle('danger')}
-              onClick={onExitCausalPathMode}
-              onMouseEnter={() => setHoveredButton('exitCausal')}
-              onMouseLeave={() => setHoveredButton(null)}
-              title="Exit causal path mode"
-            >
-              Exit Causal Path Mode
-            </button>
-          ) : <></>}
+          
           {linkMode ? (
             <button
               style={getButtonStyle('danger')}

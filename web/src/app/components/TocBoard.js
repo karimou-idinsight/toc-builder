@@ -306,10 +306,8 @@ export default function TocBoard({ boardId = 'default' }) {
       <TocToolbar
         board={board}
         linkMode={linkMode}
-        causalPathMode={causalPathMode}
         onStartLinkMode={startLinkMode}
         onExitLinkMode={exitLinkMode}
-        onExitCausalPathMode={exitCausalPathMode}
         onAddIntermediateOutcome={handleAddIntermediateOutcome}
       />
 
@@ -338,6 +336,7 @@ export default function TocBoard({ boardId = 'default' }) {
                     onDeleteNode={deleteNode}
                     onDuplicateNode={duplicateNode}
                     onNodeClick={handleNodeClick}
+                    onExitCausalPathMode={exitCausalPathMode}
                     linkMode={linkMode}
                     linkSource={linkSource}
                     getConnectedNodes={getConnectedNodes}

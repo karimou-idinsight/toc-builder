@@ -9,6 +9,7 @@ import TocNodeEditForm from './TocNodeEditForm';
 import TocNodeContent from './TocNodeContent';
 import TocNodeContextMenu from './TocNodeContextMenu';
 import TocNodeEditDialog from './TocNodeEditDialog';
+import TocNodeFooter from './TocNodeFooter';
 
 export default function TocNode({
   node,
@@ -24,6 +25,7 @@ export default function TocNode({
   onToggleDraggable,
   onStartLinking,
   onShowCausalPath,
+  onExitCausalPathMode,
   causalPathMode = false,
   isInCausalPath = false,
   isCausalPathFocalNode = false,
@@ -38,6 +40,13 @@ export default function TocNode({
   const [editDescription, setEditDescription] = useState(node.description);
   const [showDetails, setShowDetails] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  // Notify edge redraw on hover change (node height change)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('toc-node-hover', { detail: { nodeId: node.id, hovered: isHovered } }));
+    }
+  }, [isHovered, node.id]);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -125,6 +134,11 @@ export default function TocNode({
     setShowContextMenu(false);
     onShowCausalPath(node.id);
   };
+
+  const handleExitCausalPathModeFromContext = () => {
+    setShowContextMenu(false);
+    onExitCausalPathMode();
+  }
 
   const handleDeleteFromContext = () => {
     setShowContextMenu(false);
@@ -240,20 +254,37 @@ export default function TocNode({
             setHoveredButton={setHoveredButton}
           />
         ) : (
-          <TocNodeContent
-            node={node}
-            showDetails={showDetails}
-            setShowDetails={setShowDetails}
-            onEdit={() => setIsEditing(true)}
-            onDuplicate={onDuplicate}
-            onDelete={onDelete}
-            onShowConnectionDetails={() => setShowDetails(!showDetails)}
-            connectedNodes={connectedNodes || []}
-            linkMode={linkMode}
-            isLinkSource={isLinkSource}
-            hoveredButton={hoveredButton}
-            setHoveredButton={setHoveredButton}
-          />
+          <>
+            <TocNodeContent
+              node={node}
+              showDetails={showDetails}
+              setShowDetails={setShowDetails}
+              onEdit={() => setIsEditing(true)}
+              onDuplicate={onDuplicate}
+              onDelete={onDelete}
+              onShowConnectionDetails={() => setShowDetails(!showDetails)}
+              connectedNodes={connectedNodes || []}
+              linkMode={linkMode}
+              isLinkSource={isLinkSource}
+              hoveredButton={hoveredButton}
+              setHoveredButton={setHoveredButton}
+            />
+            {(isHovered || (causalPathMode && isCausalPathFocalNode)) && (
+              <TocNodeFooter
+                onMoveNode={handleMoveNode}
+                onStartLinking={handleStartLinking}
+                onEdit={handleEditFromContext}
+                onDuplicate={handleDuplicateFromContext}
+                onShowCausalPath={handleShowCausalPathFromContext}
+                onExitCausalPathMode={handleExitCausalPathModeFromContext}
+                onDelete={handleDeleteFromContext}
+                hoveredButton={hoveredButton}
+                causalPathMode={causalPathMode}
+                isCausalPathFocalNode={isCausalPathFocalNode}
+                setHoveredButton={setHoveredButton}
+              />
+            )}
+          </>
         )}
       </div>
 
@@ -279,7 +310,7 @@ export default function TocNode({
         )}
       </div>
 
-      <TocNodeContextMenu
+      {/* <TocNodeContextMenu
         show={showContextMenu}
         position={contextMenuPosition}
         onClose={handleContextMenuClose}
@@ -291,7 +322,7 @@ export default function TocNode({
         onDelete={handleDeleteFromContext}
         hoveredButton={hoveredButton}
         setHoveredButton={setHoveredButton}
-      />
+      /> */}
       
       <TocNodeEditDialog
         isOpen={showEditDialog}
