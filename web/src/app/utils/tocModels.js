@@ -211,6 +211,39 @@ export function createBoard(name = 'Theory of Change Board') {
     node.description = getNodeDescription(node.title, node.type);
   });
 
+  // Add sample tags to activities nodes only (Pillar format)
+  // Activities are nodes 0-29
+  sampleNodes[0].tags = ['Pillar #1 - Teacher Training'];
+  sampleNodes[1].tags = ['Pillar #1 - Teacher Training'];
+  sampleNodes[2].tags = ['Pillar #2 - Digital Learning'];
+  sampleNodes[3].tags = ['Pillar #1 - Teacher Training'];
+  sampleNodes[4].tags = ['Pillar #3 - Community Engagement'];
+  sampleNodes[5].tags = ['Pillar #4 - Infrastructure'];
+  sampleNodes[6].tags = ['Pillar #2 - Digital Learning'];
+  sampleNodes[7].tags = ['Pillar #3 - Community Engagement'];
+  sampleNodes[8].tags = ['Pillar #5 - Student Support'];
+  sampleNodes[9].tags = ['Pillar #6 - Literacy & Reading'];
+  sampleNodes[10].tags = ['Pillar #7 - STEM Education'];
+  sampleNodes[11].tags = ['Pillar #8 - Arts & Culture'];
+  sampleNodes[12].tags = ['Pillar #9 - Health & Wellbeing'];
+  sampleNodes[13].tags = ['Pillar #9 - Health & Wellbeing'];
+  sampleNodes[14].tags = ['Pillar #6 - Literacy & Reading'];
+  sampleNodes[15].tags = ['Pillar #2 - Digital Learning'];
+  sampleNodes[16].tags = ['Pillar #7 - STEM Education'];
+  sampleNodes[17].tags = ['Pillar #1 - Teacher Training'];
+  sampleNodes[18].tags = ['Pillar #1 - Teacher Training'];
+  sampleNodes[19].tags = ['Pillar #1 - Teacher Training'];
+  sampleNodes[20].tags = ['Pillar #2 - Digital Learning'];
+  sampleNodes[21].tags = ['Pillar #2 - Digital Learning'];
+  sampleNodes[22].tags = ['Pillar #2 - Digital Learning'];
+  sampleNodes[23].tags = ['Pillar #2 - Digital Learning'];
+  sampleNodes[24].tags = ['Pillar #2 - Digital Learning'];
+  sampleNodes[25].tags = ['Pillar #2 - Digital Learning'];
+  sampleNodes[26].tags = ['Pillar #2 - Digital Learning'];
+  sampleNodes[27].tags = ['Pillar #5 - Student Support'];
+  sampleNodes[28].tags = ['Pillar #3 - Community Engagement'];
+  sampleNodes[29].tags = ['Pillar #9 - Health & Wellbeing'];
+
   // Create edges following Theory of Change flow:
   // Activities -> Outputs or Outcomes
   // Outputs -> Outcomes

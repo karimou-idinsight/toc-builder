@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { ReactFlow, ReactFlowProvider, useReactFlow, useNodesState, useEdgesState, Handle, Position } from 'reactflow';
 import TocEdgesEditDialog from './TocEdgesEditDialog';
-import { selectAllNodes } from '../store/selectors';
+import { selectAllNodes, selectBoard } from '../store/selectors';
 import 'reactflow/dist/style.css';
 
 // Add custom CSS for edge interaction and hover effects
@@ -119,8 +119,9 @@ const nodeTypes = {
 
 // Internal component that has access to React Flow instance
 function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
-  // Get nodes from Redux
+  // Get nodes and board from Redux
   const nodes = useSelector(selectAllNodes);
+  const board = useSelector(selectBoard);
 
   const [flowNodes, setFlowNodes] = useNodesState([]);
   const [flowEdges, setFlowEdges] = useEdgesState([]);
@@ -493,16 +494,27 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
       >
       </ReactFlow>
       
-      {editingEdge && (
-        <TocEdgesEditDialog
-          isOpen={!!editingEdge}
-          onClose={handleCancelEdit}
-          onSave={handleSaveEdge}
-          onDelete={handleDeleteEdge}
-          initialLabel={editingEdge.data?.label || editingEdge.label || ''}
-          initialType={editingEdge.data?.type || editingEdge.type || 'LEADS_TO'}
-        />
-      )}
+      {editingEdge && (() => {
+        const sourceNode = nodes.find(n => n.id === editingEdge.source);
+        const targetNode = nodes.find(n => n.id === editingEdge.target);
+        const sourceList = board?.lists?.find(l => l.id === sourceNode?.listId);
+        const targetList = board?.lists?.find(l => l.id === targetNode?.listId);
+        
+        return (
+          <TocEdgesEditDialog
+            isOpen={!!editingEdge}
+            onClose={handleCancelEdit}
+            onSave={handleSaveEdge}
+            onDelete={handleDeleteEdge}
+            initialLabel={editingEdge.data?.label || editingEdge.label || ''}
+            initialType={editingEdge.data?.type || editingEdge.type || 'LEADS_TO'}
+            sourceNode={sourceNode}
+            targetNode={targetNode}
+            sourceList={sourceList}
+            targetList={targetList}
+          />
+        );
+      })()}
     </div>
   );
 }

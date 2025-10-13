@@ -11,6 +11,9 @@ const initialState = {
   causalPathMode: false,
   causalPathNodes: [],
   causalPathFocalNode: null,
+  tagFilterMode: false,
+  selectedTags: [],
+  tagFilterNodes: [],
 };
 
 const boardSlice = createSlice({
@@ -241,6 +244,25 @@ const boardSlice = createSlice({
       state.causalPathNodes = [];
       state.causalPathFocalNode = null;
       state.causalPathMode = false;
+    },
+
+    // Tag filter operations
+    setSelectedTags: (state, action) => {
+      state.selectedTags = action.payload;
+    },
+
+    setTagFilterMode: (state, action) => {
+      state.tagFilterMode = action.payload;
+    },
+
+    setTagFilterNodes: (state, action) => {
+      state.tagFilterNodes = action.payload;
+    },
+
+    clearTagFilter: (state) => {
+      state.selectedTags = [];
+      state.tagFilterNodes = [];
+      state.tagFilterMode = false;
     }
   }
 });
@@ -269,7 +291,11 @@ export const {
   setCausalPathMode,
   setCausalPathNodes,
   setCausalPathFocalNode,
-  clearCausalPath
+  clearCausalPath,
+  setSelectedTags,
+  setTagFilterMode,
+  setTagFilterNodes,
+  clearTagFilter
 } = boardSlice.actions;
 
 export default boardSlice.reducer;

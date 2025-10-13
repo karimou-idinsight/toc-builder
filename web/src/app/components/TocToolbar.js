@@ -4,12 +4,16 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { tocToolbarStyles } from '../styles/TocToolbar.styles';
 import { selectBoard } from '../store/selectors';
+import TocTagSelector from './TocTagSelector';
 
 export default function TocToolbar({
   linkMode,
   onStartLinkMode,
   onExitLinkMode,
-  onAddIntermediateOutcome
+  onAddIntermediateOutcome,
+  selectedTags,
+  onTagsChange,
+  allTags
 }) {
   // Get board from Redux instead of props
   const board = useSelector(selectBoard);
@@ -71,7 +75,13 @@ export default function TocToolbar({
       </div>
 
       <div style={tocToolbarStyles.actions}>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          {/* Tag Selector */}
+          <TocTagSelector
+            allTags={allTags}
+            selectedTags={selectedTags}
+            onTagsChange={onTagsChange}
+          />
           
           {linkMode ? (
             <button

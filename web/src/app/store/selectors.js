@@ -36,3 +36,11 @@ export const selectCausalPathNodesSet = createSelector(
   (nodes) => new Set(nodes)
 );
 
+// Tag filter selectors
+export const selectSelectedTags = (state) => state.board.selectedTags;
+export const selectTagFilterMode = (state) => state.board.tagFilterMode;
+export const selectTagFilterNodes = (state) => state.board.tagFilterNodes;
+export const selectTagFilterNodesSet = createSelector(
+  [selectTagFilterNodes],
+  (nodes) => new Set(nodes)
+);

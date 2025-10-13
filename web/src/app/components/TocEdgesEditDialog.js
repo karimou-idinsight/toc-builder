@@ -9,7 +9,11 @@ export default function TocEdgesEditDialog({
   onSave, 
   onDelete,
   initialLabel = '', 
-  initialType = 'LEADS_TO' 
+  initialType = 'LEADS_TO',
+  sourceNode,
+  targetNode,
+  sourceList,
+  targetList
 }) {
   const [label, setLabel] = useState(initialLabel);
   const [type, setType] = useState(initialType);
@@ -91,6 +95,49 @@ export default function TocEdgesEditDialog({
           <DialogTitle style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>
             Edit Connection
           </DialogTitle>
+          
+          {/* Connection Info */}
+          {sourceNode && targetNode && (
+            <div style={{ 
+              marginBottom: '20px', 
+              padding: '12px', 
+              backgroundColor: '#f9fafb', 
+              borderRadius: '6px',
+              border: '1px solid #e5e7eb'
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>
+                Connection Path
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
+                {/* Source */}
+                <div style={{ flex: '1' }}>
+                  <div style={{ fontWeight: '600', color: '#374151', marginBottom: '2px' }}>
+                    {sourceNode.title}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                    {sourceList?.name || 'Unknown List'}
+                  </div>
+                </div>
+                
+                {/* Arrow */}
+                <div style={{ color: '#9ca3af' }}>
+                  <svg width="24" height="16" viewBox="0 0 24 16" fill="none">
+                    <path d="M1 8H23M23 8L16 1M23 8L16 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                
+                {/* Target */}
+                <div style={{ flex: '1' }}>
+                  <div style={{ fontWeight: '600', color: '#374151', marginBottom: '2px' }}>
+                    {targetNode.title}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                    {targetList?.name || 'Unknown List'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* Label Input */}
           <div style={{ marginBottom: '20px' }}>

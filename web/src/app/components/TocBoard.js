@@ -33,7 +33,11 @@ import {
   setCausalPathMode,
   setCausalPathNodes,
   setCausalPathFocalNode,
-  clearCausalPath
+  clearCausalPath,
+  setSelectedTags,
+  setTagFilterMode,
+  setTagFilterNodes,
+  clearTagFilter
 } from '../store/boardSlice';
 import {
   selectBoard,
@@ -44,7 +48,10 @@ import {
   selectCausalPathNodesSet,
   selectCausalPathFocalNode,
   selectAllNodes,
-  selectAllEdges
+  selectAllEdges,
+  selectSelectedTags,
+  selectTagFilterMode,
+  selectTagFilterNodesSet
 } from '../store/selectors';
 
 export default function TocBoard({ boardId = 'default' }) {
@@ -63,6 +70,9 @@ export default function TocBoard({ boardId = 'default' }) {
   const dragType = useSelector(state => state.board.dragType);
   const allNodes = useSelector(selectAllNodes);
   const allEdges = useSelector(selectAllEdges);
+  const selectedTags = useSelector(selectSelectedTags);
+  const tagFilterMode = useSelector(selectTagFilterMode);
+  const tagFilterNodes = useSelector(selectTagFilterNodesSet);
 
   useEffect(() => {
     // Initialize board with default data if not already initialized
@@ -207,8 +217,13 @@ export default function TocBoard({ boardId = 'default' }) {
       nodes = nodes.filter(node => causalPathNodes.has(node.id));
     }
     
+    // Filter nodes in tag filter mode
+    if (tagFilterMode) {
+      nodes = nodes.filter(node => tagFilterNodes.has(node.id));
+    }
+    
     return nodes;
-  }, [allNodes, causalPathMode, causalPathNodes]);
+  }, [allNodes, causalPathMode, causalPathNodes, tagFilterMode, tagFilterNodes]);
 
   const getConnectedNodes = useCallback((nodeId) => {
     const connectedEdges = allEdges.filter(edge => 
@@ -301,6 +316,48 @@ export default function TocBoard({ boardId = 'default' }) {
     dispatch(clearCausalPath());
   }, [dispatch]);
 
+  // Tag filtering functions
+  const getAllTags = useCallback(() => {
+    const tagsSet = new Set();
+    allNodes.forEach(node => {
+      if (node.tags && Array.isArray(node.tags)) {
+        node.tags.forEach(tag => tagsSet.add(tag));
+      }
+    });
+    return Array.from(tagsSet).sort();
+  }, [allNodes]);
+
+  const handleTagsChange = useCallback((tags) => {
+    dispatch(setSelectedTags(tags));
+    
+    if (tags.length === 0) {
+      dispatch(clearTagFilter());
+      return;
+    }
+
+    // Find all nodes with selected tags
+    const nodesWithTags = new Set();
+    allNodes.forEach(node => {
+      if (node.tags && node.tags.some(tag => tags.includes(tag))) {
+        nodesWithTags.add(node.id);
+        
+        // Add all connected nodes (causal path)
+        const connectedNodes = getAllConnectedNodes(node.id);
+        connectedNodes.forEach(nodeId => nodesWithTags.add(nodeId));
+      }
+    });
+
+    dispatch(setTagFilterNodes(Array.from(nodesWithTags)));
+    dispatch(setTagFilterMode(true));
+    
+    // Scroll to top when entering tag filter mode
+    setTimeout(() => {
+      if (boardInnerRef.current) {
+        boardInnerRef.current.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      }
+    }, 0);
+  }, [allNodes, getAllConnectedNodes, dispatch]);
+
   // Filter edges for causal path mode - only show edges between nodes in the causal path
   // Also filter out backwards edges (edges that go from right to left across lists)
   const getFilteredEdges = useCallback(() => {
@@ -310,6 +367,13 @@ export default function TocBoard({ boardId = 'default' }) {
     if (causalPathMode && causalPathNodes.size > 0) {
       filteredEdges = filteredEdges.filter(edge => 
         causalPathNodes.has(edge.sourceId) && causalPathNodes.has(edge.targetId)
+      );
+    }
+    
+    // Filter for tag filter mode
+    if (tagFilterMode && tagFilterNodes.size > 0) {
+      filteredEdges = filteredEdges.filter(edge => 
+        tagFilterNodes.has(edge.sourceId) && tagFilterNodes.has(edge.targetId)
       );
     }
     
@@ -330,7 +394,7 @@ export default function TocBoard({ boardId = 'default' }) {
     });
     
     return filteredEdges;
-  }, [allEdges, allNodes, board, causalPathMode, causalPathNodes]);
+  }, [allEdges, allNodes, board, causalPathMode, causalPathNodes, tagFilterMode, tagFilterNodes]);
 
   const handleDragStart = (event) => {
     dispatch(setActiveId(event.active.id));
@@ -416,6 +480,9 @@ export default function TocBoard({ boardId = 'default' }) {
         onStartLinkMode={startLinkMode}
         onExitLinkMode={exitLinkMode}
         onAddIntermediateOutcome={handleAddIntermediateOutcome}
+        selectedTags={selectedTags}
+        onTagsChange={handleTagsChange}
+        allTags={getAllTags()}
       />
 
       <div style={tocBoardStyles.content}>
