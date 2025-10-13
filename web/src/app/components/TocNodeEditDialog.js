@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Dialog } from '@headlessui/react';
 import { selectAllEdges } from '../store/selectors';
+import TocNodeTagEditor from './TocNodeTagEditor';
 
 export default function TocNodeEditDialog({
   isOpen,
@@ -24,7 +25,6 @@ export default function TocNodeEditDialog({
   });
   const [upstreamNodes, setUpstreamNodes] = useState([]);
   const [downstreamNodes, setDownstreamNodes] = useState([]);
-  const [newTag, setNewTag] = useState('');
   const [upstreamSearch, setUpstreamSearch] = useState('');
   const [downstreamSearch, setDownstreamSearch] = useState('');
   const [showUpstreamDropdown, setShowUpstreamDropdown] = useState(false);
@@ -32,6 +32,18 @@ export default function TocNodeEditDialog({
   
   const upstreamRef = useRef(null);
   const downstreamRef = useRef(null);
+
+  // Get all existing tags from all nodes
+  const allTags = useMemo(() => {
+    if (!allNodes) return [];
+    const tagsSet = new Set();
+    allNodes.forEach(node => {
+      if (node.tags && Array.isArray(node.tags)) {
+        node.tags.forEach(tag => tagsSet.add(tag));
+      }
+    });
+    return Array.from(tagsSet).sort();
+  }, [allNodes]);
 
   // Initialize form data when dialog opens
   useEffect(() => {
@@ -88,20 +100,10 @@ export default function TocNodeEditDialog({
     }));
   };
 
-  const handleAddTag = () => {
-    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()]
-      }));
-      setNewTag('');
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove) => {
+  const handleTagsChange = (newTags) => {
     setFormData(prev => ({
       ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
+      tags: newTags
     }));
   };
 
@@ -534,39 +536,11 @@ export default function TocNodeEditDialog({
           {/* Tags */}
           <div style={dialogStyles.section}>
             <label style={dialogStyles.label}>Tags</label>
-            <div style={dialogStyles.tagContainer}>
-              {formData.tags.map(tag => (
-                <div key={tag} style={dialogStyles.tag}>
-                  {tag}
-                  <button
-                    style={dialogStyles.removeButton}
-                    onClick={() => handleRemoveTag(tag)}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-            <div style={dialogStyles.tagInput}>
-              <input
-                type="text"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                onKeyPress={(e) => handleKeyPress(e, handleAddTag)}
-                style={{...dialogStyles.input, flex: 1}}
-                placeholder="Add a tag..."
-              />
-              <button
-                style={{
-                  ...dialogStyles.addButton,
-                  ...(newTag.trim() ? {} : dialogStyles.addButtonDisabled)
-                }}
-                onClick={handleAddTag}
-                disabled={!newTag.trim()}
-              >
-                Add
-              </button>
-            </div>
+            <TocNodeTagEditor
+              tags={formData.tags}
+              allTags={allTags}
+              onTagsChange={handleTagsChange}
+            />
           </div>
 
           {/* Actions */}
