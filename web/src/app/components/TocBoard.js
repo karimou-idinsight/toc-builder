@@ -294,15 +294,35 @@ export default function TocBoard({ boardId = 'default' }) {
   }, [dispatch]);
 
   // Filter edges for causal path mode - only show edges between nodes in the causal path
+  // Also filter out backwards edges (edges that go from right to left across lists)
   const getFilteredEdges = useCallback(() => {
-    if (!causalPathMode || causalPathNodes.size === 0) {
-      return allEdges;
+    let filteredEdges = allEdges;
+    
+    // Filter for causal path mode
+    if (causalPathMode && causalPathNodes.size > 0) {
+      filteredEdges = filteredEdges.filter(edge => 
+        causalPathNodes.has(edge.sourceId) && causalPathNodes.has(edge.targetId)
+      );
     }
     
-    return allEdges.filter(edge => 
-      causalPathNodes.has(edge.sourceId) && causalPathNodes.has(edge.targetId)
-    );
-  }, [allEdges, causalPathMode, causalPathNodes]);
+    // Filter out backwards edges (edges going from a later list to an earlier list)
+    filteredEdges = filteredEdges.filter(edge => {
+      const sourceNode = allNodes.find(n => n.id === edge.sourceId);
+      const targetNode = allNodes.find(n => n.id === edge.targetId);
+      
+      if (!sourceNode || !targetNode) return false;
+      
+      const sourceList = board?.lists?.find(l => l.id === sourceNode.listId);
+      const targetList = board?.lists?.find(l => l.id === targetNode.listId);
+      
+      if (!sourceList || !targetList) return false;
+      
+      // Only show edges that go forward (left to right) or within the same list
+      return sourceList.order <= targetList.order;
+    });
+    
+    return filteredEdges;
+  }, [allEdges, allNodes, board, causalPathMode, causalPathNodes]);
 
   const handleDragStart = (event) => {
     dispatch(setActiveId(event.active.id));

@@ -119,13 +119,14 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
   const getNodePosition = useCallback((nodeId) => {
     const nodeElement = document.querySelector(`[data-node-id="${nodeId}"]`);
     if (!nodeElement || !containerRef.current) {
-      return { x: 0, y: 0, width: 0, height: 0 };
+      console.warn(`Node element not found for ${nodeId}`);
+      return null;
     }
 
     // Get the boardInner container (our parent) 
     const boardInner = containerRef.current.parentElement;
     if (!boardInner) {
-      return { x: 0, y: 0, width: 0, height: 0 };
+      return null;
     }
 
     // Get positions relative to the document
@@ -133,11 +134,15 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
     const boardRect = boardInner.getBoundingClientRect();
     
     // Calculate position relative to the board container + account for scroll
+    // This works even when nodes are scrolled out of the visible viewport
+    const x = nodeRect.left - boardRect.left + boardInner.scrollLeft;
+    const y = nodeRect.top - boardRect.top + boardInner.scrollTop;
+    
     return {
-      x: nodeRect.left - boardRect.left + boardInner.scrollLeft,
-      y: nodeRect.top - boardRect.top + boardInner.scrollTop,
-      width: nodeRect.width,
-      height: nodeRect.height
+      x,
+      y,
+      width: nodeRect.width || 200, // Fallback width
+      height: nodeRect.height || 100 // Fallback height
     };
   }, []);
 
@@ -146,8 +151,8 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
     const sourcePos = getNodePosition(sourceId);
     const targetPos = getNodePosition(targetId);
     
-    if (!sourcePos || !targetPos || sourcePos.width === 0 || targetPos.width === 0) {
-      return { sourceX: 0, sourceY: 0, targetX: 0, targetY: 0 };
+    if (!sourcePos || !targetPos) {
+      return null;
     }
 
     // Calculate relative positions
@@ -189,6 +194,25 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
   const transformNodes = useCallback(() => {
     return nodes.map(node => {
       const pos = getNodePosition(node.id);
+      
+      // Skip nodes where we can't get position (not in DOM yet)
+      if (!pos) {
+        return {
+          id: node.id,
+          type: 'invisibleWithHandles',
+          position: { x: 0, y: 0 },
+          data: { label: '' },
+          style: {
+            width: 200,
+            height: 100,
+            opacity: 0,
+          },
+          draggable: false,
+          connectable: false,
+          selectable: false,
+        };
+      }
+      
       return {
         id: node.id,
         type: 'invisibleWithHandles',
@@ -208,7 +232,15 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
   // Transform our edges to React Flow format
   const transformEdges = useCallback(() => {
     return edges.map((edge, i) => {
-      const { sourceX, sourceY, targetX, targetY } = getConnectionPoints(edge.sourceId, edge.targetId);
+      const connectionPoints = getConnectionPoints(edge.sourceId, edge.targetId);
+      
+      // Skip edges where we can't calculate positions (nodes not found)
+      if (!connectionPoints) {
+        console.warn(`Skipping edge ${edge.id} - nodes not found`);
+        return null;
+      }
+      
+      const { sourceX, sourceY, targetX, targetY } = connectionPoints;
       
       return {
         id: edge.id,
@@ -217,6 +249,18 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
         type: 'straight',
         sourceHandle: 'right',
         targetHandle: 'left',
+        label: edge.label || '',
+        labelStyle: {
+          fill: '#374151',
+          fontSize: 12,
+          fontWeight: 500,
+        },
+        labelBgStyle: {
+          fill: 'white',
+          fillOpacity: 1,
+        },
+        labelBgPadding: [8, 4],
+        labelBgBorderRadius: 4,
         data: {
           type: edge.type,
           label: edge.label,
@@ -246,7 +290,7 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
           color: getEdgeColor(edge.type),
         },
       };
-    });
+    }).filter(edge => edge !== null); // Filter out null edges
   }, [edges, onUpdateEdge, onDeleteEdge, setEditingEdge, getConnectionPoints]);
 
   // Get edge color based on type
