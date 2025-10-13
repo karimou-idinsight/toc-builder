@@ -119,7 +119,8 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
   const getNodePosition = useCallback((nodeId) => {
     const nodeElement = document.querySelector(`[data-node-id="${nodeId}"]`);
     if (!nodeElement || !containerRef.current) {
-      console.warn(`Node element not found for ${nodeId}`);
+      // If node element not found, it might be scrolled out of view
+      // Return null and the edge will be filtered out
       return null;
     }
 
@@ -129,20 +130,23 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
       return null;
     }
 
-    // Get positions relative to the document
-    const nodeRect = nodeElement.getBoundingClientRect();
-    const boardRect = boardInner.getBoundingClientRect();
+    // Get the node's offset position relative to its offset parent
+    let x = nodeElement.offsetLeft;
+    let y = nodeElement.offsetTop;
     
-    // Calculate position relative to the board container + account for scroll
-    // This works even when nodes are scrolled out of the visible viewport
-    const x = nodeRect.left - boardRect.left + boardInner.scrollLeft;
-    const y = nodeRect.top - boardRect.top + boardInner.scrollTop;
+    // Traverse up the DOM tree to calculate absolute position within the board
+    let parent = nodeElement.offsetParent;
+    while (parent && parent !== boardInner && boardInner.contains(parent)) {
+      x += parent.offsetLeft;
+      y += parent.offsetTop;
+      parent = parent.offsetParent;
+    }
     
     return {
       x,
       y,
-      width: nodeRect.width || 200, // Fallback width
-      height: nodeRect.height || 100 // Fallback height
+      width: nodeElement.offsetWidth || 200, // Fallback width
+      height: nodeElement.offsetHeight || 100 // Fallback height
     };
   }, []);
 
@@ -335,6 +339,63 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
     };
   }, [transformNodes, transformEdges]);
 
+  // Handle scroll events to update edge positions when scrolling
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const boardInner = containerRef.current.parentElement;
+    if (!boardInner) return;
+
+    let scrollTimer;
+    const handleScroll = () => {
+      // Clear existing timer
+      if (scrollTimer) {
+        clearTimeout(scrollTimer);
+      }
+      // Update edges on scroll (debounced)
+      scrollTimer = setTimeout(() => {
+        setFlowNodes(transformNodes());
+        setFlowEdges(transformEdges());
+      }, 50);
+    };
+
+    boardInner.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      boardInner.removeEventListener('scroll', handleScroll);
+      if (scrollTimer) {
+        clearTimeout(scrollTimer);
+      }
+    };
+  }, [transformNodes, transformEdges]);
+
+  // Calculate the full board dimensions
+  const [boardDimensions, setBoardDimensions] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const boardInner = containerRef.current.parentElement;
+    if (!boardInner) return;
+
+    const updateDimensions = () => {
+      // Get the full scrollable dimensions
+      const width = boardInner.scrollWidth;
+      const height = boardInner.scrollHeight;
+      setBoardDimensions({ width, height });
+    };
+
+    // Initial calculation
+    updateDimensions();
+
+    // Update on resize and when nodes change
+    const resizeObserver = new ResizeObserver(updateDimensions);
+    resizeObserver.observe(boardInner);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [nodes]);
+
   return (
     <div 
       ref={containerRef}
@@ -342,8 +403,8 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
         position: 'absolute',
         top: 0,
         left: 0,
-        width: '100%',
-        height: '100%',
+        width: boardDimensions.width || '100%',
+        height: boardDimensions.height || '100%',
         pointerEvents: 'none',
         zIndex: 1,
         overflow: 'visible',
@@ -374,8 +435,8 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
         }}
         style={{ 
           pointerEvents: 'auto',
-          width: '100%',
-          height: '100%',
+          width: boardDimensions.width || '100%',
+          height: boardDimensions.height || '100%',
         }}
         fitView={false}
         attributionPosition="bottom-left"

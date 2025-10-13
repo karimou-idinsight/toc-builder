@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, closestCenter } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
@@ -49,6 +49,7 @@ import {
 
 export default function TocBoard({ boardId = 'default' }) {
   const dispatch = useDispatch();
+  const boardInnerRef = useRef(null);
   
   // Get state from Redux
   const board = useSelector(selectBoard);
@@ -287,6 +288,13 @@ export default function TocBoard({ boardId = 'default' }) {
     dispatch(setCausalPathNodes(Array.from(connectedNodes)));
     dispatch(setCausalPathFocalNode(nodeId));
     dispatch(setCausalPathMode(true));
+    
+    // Scroll to top when entering causal path mode
+    setTimeout(() => {
+      if (boardInnerRef.current) {
+        boardInnerRef.current.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      }
+    }, 0);
   }, [getAllConnectedNodes, dispatch]);
 
   const exitCausalPathMode = useCallback(() => {
@@ -416,7 +424,7 @@ export default function TocBoard({ boardId = 'default' }) {
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div style={tocBoardStyles.boardInner}>
+          <div ref={boardInnerRef} style={tocBoardStyles.boardInner}>
             <SortableContext 
               items={board?.lists?.map(list => list.id) || []} 
               strategy={horizontalListSortingStrategy}
