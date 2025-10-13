@@ -4,14 +4,9 @@
   "type": "module",
   "description": "Next.js web app with Express.js backend - monorepo structure",
   "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:web\"",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:web": "cd web && npm run dev",
-    "build": "cd web && npm install && npm run build",
+    "build": "cd backend && npm install && cd ../web && npm install && npm run build",
     "start": "node backend/server.js",
-    "start:local": "NODE_ENV=local node backend/server.js",
-    "install:all": "cd backend && npm install && cd ../web && npm install",
-    "clean": "rm -rf backend/node_modules web/node_modules web/.next web/dist node_modules"
+    "start:local": "NODE_ENV=local node backend/server.js"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
