@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import TocListHeader from './TocListHeader';
@@ -8,6 +9,16 @@ import TocListContent from './TocListContent';
 import TocListSettingsModal from './TocListSettingsModal';
 import { NODE_TYPES } from '../utils/tocModels';
 import { tocListStyles } from '../styles/TocList.styles';
+import {
+  selectLinkMode,
+  selectLinkSource,
+  selectDraggableNodesSet,
+  selectCausalPathMode,
+  selectCausalPathNodesSet,
+  selectCausalPathFocalNode,
+  selectAllNodes,
+  selectBoard
+} from '../store/selectors';
 
 export default function TocList({
   list,
@@ -19,22 +30,23 @@ export default function TocList({
   onDeleteNode,
   onDuplicateNode,
   onNodeClick,
-  linkMode,
-  linkSource,
   getConnectedNodes,
-  draggableNodes,
   onToggleNodeDraggable,
   onStartLinking,
   onShowCausalPath,
   onExitCausalPathMode,
-  causalPathMode,
-  causalPathNodes,
-  causalPathFocalNode,
-  allNodes,
-  board,
   onAddEdge,
   onDeleteEdge
 }) {
+  // Get UI state from Redux
+  const linkMode = useSelector(selectLinkMode);
+  const linkSource = useSelector(selectLinkSource);
+  const draggableNodes = useSelector(selectDraggableNodesSet);
+  const causalPathMode = useSelector(selectCausalPathMode);
+  const causalPathNodes = useSelector(selectCausalPathNodesSet);
+  const causalPathFocalNode = useSelector(selectCausalPathFocalNode);
+  const allNodes = useSelector(selectAllNodes);
+  const board = useSelector(selectBoard);
   // local UI state
   const [hoveredButton, setHoveredButton] = useState(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -128,19 +140,12 @@ export default function TocList({
           onDeleteNode={onDeleteNode}
           onDuplicateNode={onDuplicateNode}
           onNodeClick={onNodeClick}
-          linkMode={linkMode}
-          linkSource={linkSource}
           getConnectedNodes={getConnectedNodes}
           draggableNodes={draggableNodes}
           onToggleNodeDraggable={onToggleNodeDraggable}
           onStartLinking={onStartLinking}
           onShowCausalPath={onShowCausalPath}
           onExitCausalPathMode={onExitCausalPathMode}
-          causalPathMode={causalPathMode}
-          causalPathNodes={causalPathNodes}
-          causalPathFocalNode={causalPathFocalNode}
-          allNodes={allNodes}
-          board={board}
           onAddEdge={onAddEdge}
           onDeleteEdge={onDeleteEdge}
         />

@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { ReactFlow, ReactFlowProvider, useReactFlow, useNodesState, useEdgesState, Handle, Position } from 'reactflow';
 import TocEdgesEditDialog from './TocEdgesEditDialog';
+import { selectAllNodes } from '../store/selectors';
 import 'reactflow/dist/style.css';
 
 // Add custom CSS for edge interaction
@@ -73,7 +75,9 @@ const nodeTypes = {
 
 
 // Internal component that has access to React Flow instance
-function TocEdgesInternal({ edges, nodes, onUpdateEdge, onDeleteEdge }) {
+function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
+  // Get nodes from Redux
+  const nodes = useSelector(selectAllNodes);
 
   const [flowNodes, setFlowNodes] = useNodesState([]);
   const [flowEdges, setFlowEdges] = useEdgesState([]);
@@ -350,8 +354,8 @@ function TocEdgesInternal({ edges, nodes, onUpdateEdge, onDeleteEdge }) {
 }
 
 // Main component with ReactFlowProvider
-export default function TocEdges({ edges, nodes, onUpdateEdge, onDeleteEdge }) {
-  console.log('TocEdges rendered with:', { edges: edges?.length, nodes: nodes?.length });
+export default function TocEdges({ edges, onUpdateEdge, onDeleteEdge }) {
+  console.log('TocEdges rendered with:', { edges: edges?.length });
   if (!edges || edges.length === 0) {
     console.log('No edges to render');
     return null;
@@ -361,7 +365,6 @@ export default function TocEdges({ edges, nodes, onUpdateEdge, onDeleteEdge }) {
     <ReactFlowProvider>
       <TocEdgesInternal 
         edges={edges} 
-        nodes={nodes} 
         onUpdateEdge={onUpdateEdge} 
         onDeleteEdge={onDeleteEdge} 
       />

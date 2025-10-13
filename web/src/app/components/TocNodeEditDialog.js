@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { Dialog } from '@headlessui/react';
+import { selectAllEdges } from '../store/selectors';
 
 export default function TocNodeEditDialog({
   isOpen,
@@ -13,6 +15,8 @@ export default function TocNodeEditDialog({
   onAddEdge,
   onDeleteEdge
 }) {
+  // Get edges from Redux instead of props
+  const edges = useSelector(selectAllEdges);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -39,7 +43,6 @@ export default function TocNodeEditDialog({
       });
       
       // Find upstream and downstream connections
-      const edges = board?.edges || [];
       const upstream = edges
         .filter(edge => edge.targetId === node.id)
         .map(edge => allNodes.find(n => n.id === edge.sourceId))
@@ -55,7 +58,7 @@ export default function TocNodeEditDialog({
       setUpstreamSearch('');
       setDownstreamSearch('');
     }
-  }, [isOpen, node, allNodes, board?.edges]);
+  }, [isOpen, node, allNodes, edges]);
 
   // Get available nodes for selection (excluding current node and already selected ones)
   const getAvailableUpstreamNodes = () => {
@@ -135,8 +138,8 @@ export default function TocNodeEditDialog({
     onSave(node.id, formData);
 
     // Handle edge changes if edge operations are available
-    if (onAddEdge && onDeleteEdge && board?.edges) {
-      const currentEdges = board.edges;
+    if (onAddEdge && onDeleteEdge) {
+      const currentEdges = edges;
       const currentUpstreamIds = currentEdges
         .filter(edge => edge.targetId === node.id)
         .map(edge => edge.sourceId);

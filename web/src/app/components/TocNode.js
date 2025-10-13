@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { tocNodeStyles } from '../styles/TocNode.styles';
@@ -10,6 +11,15 @@ import TocNodeContent from './TocNodeContent';
 import TocNodeContextMenu from './TocNodeContextMenu';
 import TocNodeEditDialog from './TocNodeEditDialog';
 import TocNodeFooter from './TocNodeFooter';
+import {
+  selectLinkMode,
+  selectLinkSource,
+  selectCausalPathMode,
+  selectCausalPathNodesSet,
+  selectCausalPathFocalNode,
+  selectAllNodes,
+  selectBoard
+} from '../store/selectors';
 
 export default function TocNode({
   node,
@@ -18,22 +28,28 @@ export default function TocNode({
   onDelete = () => {},
   onDuplicate = () => {},
   onClick = () => {},
-  linkMode,
-  isLinkSource,
   connectedNodes= [],
   isDraggable = false,
   onToggleDraggable,
   onStartLinking,
   onShowCausalPath,
   onExitCausalPathMode,
-  causalPathMode = false,
-  isInCausalPath = false,
-  isCausalPathFocalNode = false,
-  allNodes = [],
-  board = {},
   onAddEdge = () => {},
   onDeleteEdge = () => {}
 }) {
+  // Get UI state from Redux
+  const linkMode = useSelector(selectLinkMode);
+  const linkSource = useSelector(selectLinkSource);
+  const causalPathMode = useSelector(selectCausalPathMode);
+  const causalPathNodes = useSelector(selectCausalPathNodesSet);
+  const causalPathFocalNode = useSelector(selectCausalPathFocalNode);
+  const allNodes = useSelector(selectAllNodes);
+  const board = useSelector(selectBoard);
+  
+  // Computed values
+  const isLinkSource = linkSource === node.id;
+  const isInCausalPath = causalPathNodes.has(node.id);
+  const isCausalPathFocalNode = causalPathFocalNode === node.id;
   const [hoveredButton, setHoveredButton] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(node.title);

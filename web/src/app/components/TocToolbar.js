@@ -1,15 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { tocToolbarStyles } from '../styles/TocToolbar.styles';
+import { selectBoard } from '../store/selectors';
 
 export default function TocToolbar({
-  board,
   linkMode,
   onStartLinkMode,
   onExitLinkMode,
   onAddIntermediateOutcome
 }) {
+  // Get board from Redux instead of props
+  const board = useSelector(selectBoard);
   const [isClient, setIsClient] = useState(false);
   const [hoveredButton, setHoveredButton] = useState(null);
 

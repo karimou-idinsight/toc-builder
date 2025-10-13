@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, closestCenter } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import TocList from './TocList';
@@ -8,107 +9,195 @@ import TocNode from './TocNode';
 import TocToolbar from './TocToolbar';
 import TocEdges from './TocEdges';
 import TocEdgesLegend from './TocEdgesLegend';
-import { createBoard } from '../utils/tocModels';
+import { createBoard, createNode, createList, createEdge, NODE_TYPES, EDGE_TYPES } from '../utils/tocModels';
 import { tocBoardStyles } from '../styles/TocBoard.styles';
-import { useListOperations } from '../hooks/useListOperations';
-import { useNodeOperations } from '../hooks/useNodeOperations';
-import { useEdgeOperations } from '../hooks/useEdgeOperations';
+import {
+  initializeBoard,
+  addList,
+  updateList as updateListAction,
+  deleteList as deleteListAction,
+  reorderLists as reorderListsAction,
+  addNode as addNodeAction,
+  updateNode as updateNodeAction,
+  deleteNode as deleteNodeAction,
+  reorderNodes as reorderNodesAction,
+  moveNode as moveNodeAction,
+  addEdge as addEdgeAction,
+  updateEdge as updateEdgeAction,
+  deleteEdge as deleteEdgeAction,
+  setLinkMode,
+  setLinkSource,
+  setActiveId,
+  setDragType,
+  toggleNodeDraggable,
+  setCausalPathMode,
+  setCausalPathNodes,
+  setCausalPathFocalNode,
+  clearCausalPath
+} from '../store/boardSlice';
+import {
+  selectBoard,
+  selectLinkMode,
+  selectLinkSource,
+  selectDraggableNodesSet,
+  selectCausalPathMode,
+  selectCausalPathNodesSet,
+  selectCausalPathFocalNode,
+  selectAllNodes,
+  selectAllEdges
+} from '../store/selectors';
 
 export default function TocBoard({ boardId = 'default' }) {
-  const [board, setBoard] = useState();
-  const [linkMode, setLinkMode] = useState(false);
-  const [linkSource, setLinkSource] = useState(null);
-  const [activeId, setActiveId] = useState(null);
-  const [dragType, setDragType] = useState(null); // 'list' or 'node'
-  const [draggableNodes, setDraggableNodes] = useState(new Set()); // Track which nodes are draggable
-  const [causalPathMode, setCausalPathMode] = useState(false);
-  const [causalPathNodes, setCausalPathNodes] = useState(new Set());
-  const [causalPathFocalNode, setCausalPathFocalNode] = useState(null); // The node that initiated the causal path
+  const dispatch = useDispatch();
+  
+  // Get state from Redux
+  const board = useSelector(selectBoard);
+  const linkMode = useSelector(selectLinkMode);
+  const linkSource = useSelector(selectLinkSource);
+  const draggableNodes = useSelector(selectDraggableNodesSet);
+  const causalPathMode = useSelector(selectCausalPathMode);
+  const causalPathNodes = useSelector(selectCausalPathNodesSet);
+  const causalPathFocalNode = useSelector(selectCausalPathFocalNode);
+  const activeId = useSelector(state => state.board.activeId);
+  const dragType = useSelector(state => state.board.dragType);
+  const allNodes = useSelector(selectAllNodes);
+  const allEdges = useSelector(selectAllEdges);
 
-  // Use custom hooks
-  const {
-    addIntermediateOutcome,
-    updateList,
-    deleteList,
-    reorderLists
-  } = useListOperations(board, setBoard);
+  useEffect(() => {
+    // Initialize board with default data if not already initialized
+    if (!board) {
+      const initialBoard = createBoard();
+      console.log('Initial board created:', initialBoard);
+      dispatch(initializeBoard(initialBoard));
+    }
+  }, [board, dispatch]);
 
-  const {
-    addNode,
-    updateNode,
-    deleteNode,
-    reorderNodes,
-    moveNode,
-    duplicateNode
-  } = useNodeOperations(board, setBoard);
+  // Wrapper functions for Redux actions
+  const addIntermediateOutcome = useCallback((name) => {
+    if (!board?.lists) return;
+    const intermediateOutcomeName = name || `Intermediate Outcomes ${board.lists.filter(l => l.type === 'intermediate').length + 1}`;
+    const newList = createList(intermediateOutcomeName, '#f59e0b', 0, 'intermediate');
+    
+    const finalOutcomesIndex = board.lists.findIndex(l => l.name === 'Final Outcomes' || l.type === 'fixed' && l.order >= 3);
+    const insertIndex = finalOutcomesIndex !== -1 ? finalOutcomesIndex : board.lists.length - 2;
+    newList.order = insertIndex;
+    
+    dispatch(addList(newList));
+    return newList.id;
+  }, [board, dispatch]);
 
-  const {
-    addEdge,
-    updateEdge,
-    deleteEdge
-  } = useEdgeOperations(board, setBoard);
+  const updateList = useCallback((listId, updates) => {
+    dispatch(updateListAction({ listId, updates }));
+  }, [dispatch]);
 
-    useEffect(() => {
-    // Initialize board with default data or fetch from API if needed
-    const initialBoard = createBoard();
-    console.log('Initial board created:', initialBoard);
-    setBoard(initialBoard);
-  }, [boardId]);
+  const deleteList = useCallback((listId) => {
+    dispatch(deleteListAction(listId));
+  }, [dispatch]);
 
-  // Helper function to update board
-  const updateBoard = useCallback((updates) => {
-    setBoard(prev => ({
-      ...prev,
-      ...updates,
-      updatedAt: new Date().toISOString()
-    }));
-  }, []);
+  const reorderLists = useCallback((draggedId, targetId) => {
+    dispatch(reorderListsAction({ draggedId, targetId }));
+  }, [dispatch]);
+
+  const addNodeWrapper = useCallback((title, listId, type = NODE_TYPES.ACTIVITY) => {
+    const existingNodesInList = allNodes.filter(node => node.listId === listId);
+    const maxOrder = existingNodesInList.length > 0 
+      ? Math.max(...existingNodesInList.map(node => node.order || 0))
+      : -1;
+    
+    const newNode = {
+      ...createNode(title, listId, type),
+      order: maxOrder + 1
+    };
+    
+    dispatch(addNodeAction(newNode));
+  }, [allNodes, dispatch]);
+
+  const updateNode = useCallback((nodeId, updates) => {
+    dispatch(updateNodeAction({ nodeId, updates }));
+  }, [dispatch]);
+
+  const deleteNode = useCallback((nodeId) => {
+    dispatch(deleteNodeAction(nodeId));
+  }, [dispatch]);
+
+  const reorderNodes = useCallback((draggedId, targetId, listId) => {
+    dispatch(reorderNodesAction({ listId, draggedId, targetId }));
+  }, [dispatch]);
+
+  const moveNode = useCallback((nodeId, targetListId) => {
+    dispatch(moveNodeAction({ nodeId, targetListId }));
+  }, [dispatch]);
+
+  const duplicateNode = useCallback((nodeId) => {
+    const originalNode = allNodes.find(node => node.id === nodeId);
+    if (!originalNode) return null;
+
+    const newNode = {
+      ...createNode(originalNode.title + ' (Copy)', originalNode.listId, originalNode.type),
+      description: originalNode.description,
+      tags: [...originalNode.tags],
+      color: originalNode.color,
+      priority: originalNode.priority
+    };
+
+    dispatch(addNodeAction(newNode));
+    return newNode.id;
+  }, [allNodes, dispatch]);
+
+  const addEdgeWrapper = useCallback((sourceId, targetId, type = EDGE_TYPES.LEADS_TO) => {
+    const existingEdge = allEdges.find(edge => 
+      edge.sourceId === sourceId && edge.targetId === targetId
+    );
+    if (existingEdge) return existingEdge.id;
+
+    const newEdge = createEdge(sourceId, targetId, type);
+    dispatch(addEdgeAction(newEdge));
+    return newEdge.id;
+  }, [allEdges, dispatch]);
+
+  const updateEdge = useCallback((edgeId, updates) => {
+    dispatch(updateEdgeAction({ edgeId, updates }));
+  }, [dispatch]);
+
+  const deleteEdge = useCallback((edgeId) => {
+    dispatch(deleteEdgeAction(edgeId));
+  }, [dispatch]);
 
   // Link mode operations
   const startLinkMode = useCallback(() => {
-    setLinkMode(true);
-    setLinkSource(null);
-  }, []);
+    dispatch(setLinkMode(true));
+    dispatch(setLinkSource(null));
+  }, [dispatch]);
 
   const exitLinkMode = useCallback(() => {
-    setLinkMode(false);
-    setLinkSource(null);
-  }, []);
+    dispatch(setLinkMode(false));
+    dispatch(setLinkSource(null));
+  }, [dispatch]);
 
   const handleNodeClick = useCallback((nodeId) => {
     if (linkMode) {
       if (!linkSource) {
-        setLinkSource(nodeId);
+        dispatch(setLinkSource(nodeId));
       } else if (linkSource !== nodeId) {
-        addEdge(linkSource, nodeId);
-        setLinkSource(null);
-        setLinkMode(false);
+        addEdgeWrapper(linkSource, nodeId);
+        dispatch(setLinkSource(null));
+        dispatch(setLinkMode(false));
       }
     }
-  }, [linkMode, linkSource, addEdge]);
+  }, [linkMode, linkSource, addEdgeWrapper, dispatch]);
 
-  // Node draggable operations
-  const toggleNodeDraggable = useCallback((nodeId, isDraggable) => {
-    setDraggableNodes(prev => {
-      const newSet = new Set(prev);
-      if (isDraggable) {
-        newSet.add(nodeId);
-      } else {
-        newSet.delete(nodeId);
-      }
-      return newSet;
-    });
-  }, []);
+  const handleToggleNodeDraggable = useCallback((nodeId, isDraggable) => {
+    dispatch(toggleNodeDraggable({ nodeId, isDraggable }));
+  }, [dispatch]);
 
   const handleNodeStartLinking = useCallback((nodeId) => {
-    setLinkMode(true);
-    setLinkSource(nodeId);
-  }, []);
+    dispatch(setLinkMode(true));
+    dispatch(setLinkSource(nodeId));
+  }, [dispatch]);
 
   // Utility functions
   const getNodesByListId = useCallback((listId) => {
-    if (!board?.nodes) return [];
-    let nodes = board.nodes
+    let nodes = allNodes
       .filter(node => node.listId === listId)
       .sort((a, b) => (a.order || 0) - (b.order || 0));
     
@@ -118,26 +207,25 @@ export default function TocBoard({ boardId = 'default' }) {
     }
     
     return nodes;
-  }, [board?.nodes, causalPathMode, causalPathNodes]);
+  }, [allNodes, causalPathMode, causalPathNodes]);
 
   const getConnectedNodes = useCallback((nodeId) => {
-    if (!board?.edges || !board?.nodes) return [];
-    const connectedEdges = board.edges.filter(edge => 
+    const connectedEdges = allEdges.filter(edge => 
       edge.sourceId === nodeId || edge.targetId === nodeId
     );
     const connectedNodeIds = connectedEdges.flatMap(edge => [edge.sourceId, edge.targetId]);
-    return board.nodes.filter(node => connectedNodeIds.includes(node.id));
-  }, [board?.edges, board?.nodes]);
+    return allNodes.filter(node => connectedNodeIds.includes(node.id));
+  }, [allEdges, allNodes]);
 
   // Get all upstream nodes recursively (nodes that lead to this node)
   const getUpstreamNodes = useCallback((startNodeId, visited = new Set()) => {
-    if (!board?.edges || visited.has(startNodeId)) return new Set();
+    if (visited.has(startNodeId)) return new Set();
     
     visited.add(startNodeId);
     const upstreamNodes = new Set();
     
     // Find all edges where this node is the target
-    const incomingEdges = board.edges.filter(edge => edge.targetId === startNodeId);
+    const incomingEdges = allEdges.filter(edge => edge.targetId === startNodeId);
     
     incomingEdges.forEach(edge => {
       const sourceNodeId = edge.sourceId;
@@ -149,17 +237,17 @@ export default function TocBoard({ boardId = 'default' }) {
     });
     
     return upstreamNodes;
-  }, [board?.edges]);
+  }, [allEdges]);
 
   // Get all downstream nodes recursively (nodes that this node leads to)
   const getDownstreamNodes = useCallback((startNodeId, visited = new Set()) => {
-    if (!board?.edges || visited.has(startNodeId)) return new Set();
+    if (visited.has(startNodeId)) return new Set();
     
     visited.add(startNodeId);
     const downstreamNodes = new Set();
     
     // Find all edges where this node is the source
-    const outgoingEdges = board.edges.filter(edge => edge.sourceId === startNodeId);
+    const outgoingEdges = allEdges.filter(edge => edge.sourceId === startNodeId);
     
     outgoingEdges.forEach(edge => {
       const targetNodeId = edge.targetId;
@@ -171,12 +259,10 @@ export default function TocBoard({ boardId = 'default' }) {
     });
     
     return downstreamNodes;
-  }, [board?.edges]);
+  }, [allEdges]);
 
   // Get all connected nodes: upstream + node + downstream
   const getAllConnectedNodes = useCallback((startNodeId) => {
-    if (!board?.edges || !board?.nodes) return new Set();
-    
     const upstreamNodes = getUpstreamNodes(startNodeId);
     const downstreamNodes = getDownstreamNodes(startNodeId);
     
@@ -193,44 +279,42 @@ export default function TocBoard({ boardId = 'default' }) {
     downstreamNodes.forEach(nodeId => allConnected.add(nodeId));
     
     return allConnected;
-  }, [board?.edges, board?.nodes, getUpstreamNodes, getDownstreamNodes]);
+  }, [getUpstreamNodes, getDownstreamNodes]);
 
   // Causal path mode functions
   const enterCausalPathMode = useCallback((nodeId) => {
     const connectedNodes = getAllConnectedNodes(nodeId);
-    setCausalPathNodes(connectedNodes);
-    setCausalPathFocalNode(nodeId);
-    setCausalPathMode(true);
-  }, [getAllConnectedNodes]);
+    dispatch(setCausalPathNodes(Array.from(connectedNodes)));
+    dispatch(setCausalPathFocalNode(nodeId));
+    dispatch(setCausalPathMode(true));
+  }, [getAllConnectedNodes, dispatch]);
 
   const exitCausalPathMode = useCallback(() => {
-    setCausalPathMode(false);
-    setCausalPathNodes(new Set());
-    setCausalPathFocalNode(null);
-  }, []);
+    dispatch(clearCausalPath());
+  }, [dispatch]);
 
   // Filter edges for causal path mode - only show edges between nodes in the causal path
   const getFilteredEdges = useCallback(() => {
     if (!causalPathMode || causalPathNodes.size === 0) {
-      return board?.edges || [];
+      return allEdges;
     }
     
-    return (board?.edges || []).filter(edge => 
+    return allEdges.filter(edge => 
       causalPathNodes.has(edge.sourceId) && causalPathNodes.has(edge.targetId)
     );
-  }, [board?.edges, causalPathMode, causalPathNodes]);
+  }, [allEdges, causalPathMode, causalPathNodes]);
 
   const handleDragStart = (event) => {
-    setActiveId(event.active.id);
-    setDragType(event.active.data.current?.type || 'node');
+    dispatch(setActiveId(event.active.id));
+    dispatch(setDragType(event.active.data.current?.type || 'node'));
   };
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
     
     if (!over) {
-      setActiveId(null);
-      setDragType(null);
+      dispatch(setActiveId(null));
+      dispatch(setDragType(null));
       return;
     }
 
@@ -255,15 +339,11 @@ export default function TocBoard({ boardId = 'default' }) {
       }
       
       // Exit draggable mode for the moved node
-      setDraggableNodes(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(active.id);
-        return newSet;
-      });
+      dispatch(toggleNodeDraggable({ nodeId: active.id, isDraggable: false }));
     }
 
-    setActiveId(null);
-    setDragType(null);
+    dispatch(setActiveId(null));
+    dispatch(setDragType(null));
   };
 
   const handleAddIntermediateOutcome = () => {
@@ -304,7 +384,6 @@ export default function TocBoard({ boardId = 'default' }) {
   return (
     <div style={tocBoardStyles.container} onClick={handleBackgroundClick}>
       <TocToolbar
-        board={board}
         linkMode={linkMode}
         onStartLinkMode={startLinkMode}
         onExitLinkMode={exitLinkMode}
@@ -322,7 +401,7 @@ export default function TocBoard({ boardId = 'default' }) {
               items={board?.lists?.map(list => list.id) || []} 
               strategy={horizontalListSortingStrategy}
             >
-              {(board?.lists || [])
+              {[...(board?.lists || [])]
                 .sort((a, b) => a.order - b.order)
                 .map((list) => (
                   <TocList
@@ -331,25 +410,17 @@ export default function TocBoard({ boardId = 'default' }) {
                     nodes={getNodesByListId(list.id) || []}
                     onUpdateList={updateList}
                     onDeleteList={deleteList}
-                    onAddNode={(title, type) => addNode(title, list.id, type)}
+                    onAddNode={(title, type) => addNodeWrapper(title, list.id, type)}
                     onUpdateNode={updateNode}
                     onDeleteNode={deleteNode}
                     onDuplicateNode={duplicateNode}
                     onNodeClick={handleNodeClick}
                     onExitCausalPathMode={exitCausalPathMode}
-                    linkMode={linkMode}
-                    linkSource={linkSource}
                     getConnectedNodes={getConnectedNodes}
-                    draggableNodes={draggableNodes}
-                    onToggleNodeDraggable={toggleNodeDraggable}
+                    onToggleNodeDraggable={handleToggleNodeDraggable}
                     onStartLinking={handleNodeStartLinking}
                     onShowCausalPath={enterCausalPathMode}
-                    causalPathMode={causalPathMode}
-                    causalPathNodes={causalPathNodes}
-                    causalPathFocalNode={causalPathFocalNode}
-                    allNodes={board?.nodes || []}
-                    board={board}
-                    onAddEdge={addEdge}
+                    onAddEdge={addEdgeWrapper}
                     onDeleteEdge={deleteEdge}
                   />
                 ))}
@@ -357,7 +428,6 @@ export default function TocBoard({ boardId = 'default' }) {
             
             <TocEdges
               edges={getFilteredEdges()}
-              nodes={board?.nodes || []}
               onUpdateEdge={updateEdge}
               onDeleteEdge={deleteEdge}
             />
@@ -366,12 +436,8 @@ export default function TocBoard({ boardId = 'default' }) {
           <DragOverlay>
             {activeId && dragType === 'node' ? (
               <TocNode
-                node={board?.nodes.find(n => n.id === activeId)}
+                node={allNodes.find(n => n.id === activeId)}
                 isDragging={true}
-                linkMode={false}
-                isLinkSource={false}
-                allNodes={board?.nodes || []}
-                board={board}
               />
             ) : null}
           </DragOverlay>
@@ -379,7 +445,7 @@ export default function TocBoard({ boardId = 'default' }) {
       </div>
       
       {/* Fixed legend that doesn't scroll with content */}
-      <TocEdgesLegend visible={board?.edges?.length > 0} />
+      <TocEdgesLegend visible={allEdges.length > 0} />
     </div>
   );
 }

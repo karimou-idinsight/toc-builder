@@ -19,19 +19,12 @@ export default function TocListContent({
   onDeleteNode,
   onDuplicateNode,
   onNodeClick,
-  linkMode,
-  linkSource,
   getConnectedNodes,
   draggableNodes,
   onToggleNodeDraggable,
   onStartLinking,
   onShowCausalPath,
   onExitCausalPathMode,
-  causalPathMode,
-  causalPathNodes,
-  causalPathFocalNode,
-  allNodes,
-  board,
   onAddEdge,
   onDeleteEdge
 }) {
@@ -47,19 +40,12 @@ export default function TocListContent({
               onDelete={onDeleteNode}
               onDuplicate={onDuplicateNode}
               onClick={onNodeClick}
-              linkMode={linkMode}
-              isLinkSource={linkSource === node.id}
               connectedNodes={getConnectedNodes(node.id)}
               isDraggable={draggableNodes?.has(node.id) || false}
               onToggleDraggable={onToggleNodeDraggable}
               onStartLinking={onStartLinking}
               onShowCausalPath={onShowCausalPath}
               onExitCausalPathMode={onExitCausalPathMode}
-              causalPathMode={causalPathMode}
-              isInCausalPath={causalPathNodes?.has(node.id) || false}
-              isCausalPathFocalNode={causalPathFocalNode === node.id}
-              allNodes={allNodes}
-              board={board}
               onAddEdge={onAddEdge}
               onDeleteEdge={onDeleteEdge}
             />
