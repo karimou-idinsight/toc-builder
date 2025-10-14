@@ -1,5 +1,5 @@
-const pool = require('../config/database');
-const crypto = require('crypto');
+import pool from '../config/database.js';
+import crypto from 'crypto';
 
 class BoardInvitation {
   constructor(data) {
@@ -247,4 +247,4 @@ class BoardInvitation {
   }
 }
 
-module.exports = BoardInvitation;
+export default BoardInvitation;

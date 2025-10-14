@@ -1,4 +1,4 @@
-const pool = require('../config/database');
+import pool from '../config/database.js';
 
 class BoardPermission {
   constructor(data) {
@@ -178,4 +178,4 @@ class BoardPermission {
   }
 }
 
-module.exports = BoardPermission;
+export default BoardPermission;

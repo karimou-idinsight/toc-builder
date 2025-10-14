@@ -1,7 +1,7 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const Board = require('../models/Board');
-const BoardPermission = require('../models/BoardPermission');
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import Board from '../models/Board.js';
+import BoardPermission from '../models/BoardPermission.js';
 
 // JWT Authentication Middleware
 const authenticateToken = async (req, res, next) => {
@@ -123,13 +123,13 @@ const requireAdmin = async (req, res, next) => {
 const rateLimit = (windowMs = 15 * 60 * 1000, maxRequests = 100) => {
   return async (req, res, next) => {
     try {
-      const redis = require('../config/redis');
+      const redis = await import('../config/redis.js');
       const key = `rate_limit:${req.ip}:${req.route?.path || 'unknown'}`;
       
-      const current = await redis.incr(key);
+      const current = await redis.default.incr(key);
       
       if (current === 1) {
-        await redis.expire(key, Math.ceil(windowMs / 1000));
+        await redis.default.expire(key, Math.ceil(windowMs / 1000));
       }
       
       if (current > maxRequests) {
@@ -186,7 +186,7 @@ const generateRefreshToken = (userId) => {
   );
 };
 
-module.exports = {
+export {
   authenticateToken,
   optionalAuth,
   requireBoardPermission,

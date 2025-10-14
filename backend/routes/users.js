@@ -1,10 +1,10 @@
-const express = require('express');
-const User = require('../models/User');
-const { 
+import express from 'express';
+import User from '../models/User.js';
+import { 
   authenticateToken, 
   requireEmailVerification,
   rateLimit 
-} = require('../middleware/auth');
+} from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -110,7 +110,7 @@ router.delete('/account', authenticateToken, requireEmailVerification, async (re
 // Get user's boards
 router.get('/boards', authenticateToken, async (req, res) => {
   try {
-    const Board = require('../models/Board');
+    const { default: Board } = await import('../models/Board.js');
     const boards = await Board.findByUserAccess(req.user.id);
     
     res.json({ boards });
@@ -132,7 +132,7 @@ router.get('/search', authenticateToken, rateLimit(60 * 1000, 20), async (req, r
       });
     }
     
-    const pool = require('../config/database');
+    const { default: pool } = await import('../config/database.js');
     const query = `
       SELECT id, email, first_name, last_name, avatar_url
       FROM users
@@ -179,7 +179,7 @@ router.get('/search', authenticateToken, rateLimit(60 * 1000, 20), async (req, r
 // Get user statistics
 router.get('/stats', authenticateToken, async (req, res) => {
   try {
-    const pool = require('../config/database');
+    const { default: pool } = await import('../config/database.js');
     
     // Get board statistics
     const boardStatsQuery = `
@@ -214,4 +214,4 @@ router.get('/stats', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

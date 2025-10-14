@@ -1,4 +1,4 @@
-const pool = require('../config/database');
+import pool from '../config/database.js';
 
 class Board {
   constructor(data) {
@@ -28,6 +28,7 @@ class Board {
     const board = new Board(result.rows[0]);
     
     // Add owner as owner permission
+    const { default: BoardPermission } = await import('./BoardPermission.js');
     await BoardPermission.create({
       board_id: board.id,
       user_id: owner_id,
@@ -260,4 +261,4 @@ class Board {
   }
 }
 
-module.exports = Board;
+export default Board;

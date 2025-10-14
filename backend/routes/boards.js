@@ -1,15 +1,15 @@
-const express = require('express');
-const Board = require('../models/Board');
-const BoardPermission = require('../models/BoardPermission');
-const BoardInvitation = require('../models/BoardInvitation');
-const { 
+import express from 'express';
+import Board from '../models/Board.js';
+import BoardPermission from '../models/BoardPermission.js';
+import BoardInvitation from '../models/BoardInvitation.js';
+import { 
   authenticateToken, 
   requireBoardOwner,
   requireBoardContributor,
   requireBoardViewer,
   requireEmailVerification,
   rateLimit 
-} = require('../middleware/auth');
+} from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -141,7 +141,7 @@ router.post('/:boardId/permissions', authenticateToken, requireBoardOwner, async
     }
     
     // Check if user exists
-    const User = require('../models/User');
+    const { default: User } = await import('../models/User.js');
     const user = await User.findById(user_id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -242,7 +242,7 @@ router.post('/:boardId/invite', authenticateToken, requireBoardContributor, asyn
     }
     
     // Check if user already has permission
-    const User = require('../models/User');
+    const { default: User } = await import('../models/User.js');
     const user = await User.findByEmail(email);
     if (user) {
       const existingPermission = await BoardPermission.findByBoardAndUser(req.board.id, user.id);
@@ -337,4 +337,4 @@ router.get('/invitations/pending', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

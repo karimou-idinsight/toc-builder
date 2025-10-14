@@ -1,6 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "Express.js backend API server serving static web app",
   "main": "server.js",
   "scripts": {

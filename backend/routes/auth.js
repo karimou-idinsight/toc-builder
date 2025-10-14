@@ -1,15 +1,15 @@
-const express = require('express');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const User = require('../models/User');
-const { 
+import express from 'express';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import User from '../models/User.js';
+import { 
   authenticateToken, 
   generateToken, 
   generateRefreshToken,
   rateLimit 
-} = require('../middleware/auth');
+} from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -320,4 +320,4 @@ router.post('/verify-email', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

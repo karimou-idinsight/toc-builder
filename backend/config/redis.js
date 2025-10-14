@@ -1,8 +1,14 @@
-const redis = require('redis');
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+import { createClient } from 'redis';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
-const redisClient = redis.createClient({
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '../../.env') });
+
+const redisClient = createClient({
   host: process.env.REDIS_HOST || 'localhost',
   port: process.env.REDIS_PORT || 6379,
   password: process.env.REDIS_PASSWORD || undefined,
@@ -31,4 +37,4 @@ redisClient.on('error', (err) => {
 // Connect to Redis
 redisClient.connect().catch(console.error);
 
-module.exports = redisClient;
+export default redisClient;

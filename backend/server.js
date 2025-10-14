@@ -1,18 +1,24 @@
-const express = require('express');
-const session = require('express-session');
-const RedisStore = require('connect-redis').default;
-const passport = require('passport');
-const cors = require('cors');
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
+import express from 'express';
+import session from 'express-session';
+import RedisStore from 'connect-redis';
+import passport from 'passport';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
-const redis = require('./config/redis');
-const { rateLimit } = require('./middleware/auth');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '../.env') });
+
+import redis from './config/redis.js';
+import { rateLimit } from './middleware/auth.js';
 
 // Import routes
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const boardRoutes = require('./routes/boards');
+import authRoutes from './routes/auth.js';
+import userRoutes from './routes/users.js';
+import boardRoutes from './routes/boards.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -98,4 +104,4 @@ app.listen(PORT, () => {
   console.log(`Health check: http://localhost:${PORT}/health`);
 });
 
-module.exports = app;
+export default app;

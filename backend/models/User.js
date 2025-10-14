@@ -1,6 +1,6 @@
-const pool = require('../config/database');
-const bcrypt = require('bcrypt');
-const crypto = require('crypto');
+import pool from '../config/database.js';
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 
 class User {
   constructor(data) {
@@ -214,4 +214,4 @@ class User {
   }
 }
 
-module.exports = User;
+export default User;
