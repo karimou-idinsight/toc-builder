@@ -9,12 +9,6 @@ export default function Home() {
   const router = useRouter();
   const { isAuthenticated, loading } = useAuth();
 
-  useEffect(() => {
-    // Redirect authenticated users to the boards list
-    if (!loading && isAuthenticated) {
-      router.push('/boards');
-    }
-  }, [isAuthenticated, loading, router]);
 
   if (loading) {
     return (
