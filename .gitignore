@@ -29,3 +29,5 @@ web/.next/
 
 # eslint
 .eslintrc.json
+
+database.json

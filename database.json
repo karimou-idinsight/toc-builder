@@ -6,6 +6,15 @@
     "database": "toc_builder",
     "user": "postgres",
     "password": "postgres"
+  },
+  "prod": {
+    "driver": "pg",
+    "url": "postgres://u81kop7d3kogb4:p697903f59bbbf74e9f25ed80df5b7059af5321adb46912fd64f044894e0c5f09@c7itisjfjj8ril.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d4ups279s1n725",
+    "ssl": {
+      "rejectUnauthorized": false
+    }
   }
+
+  
 }
 
