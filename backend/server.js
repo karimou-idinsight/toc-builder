@@ -70,7 +70,7 @@ app.use('/api/boards', boardRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Serve Next.js static files from dist folder
-const nextDistPath = path.join(__dirname, '..', 'web', 'out');
+const nextDistPath = path.join(__dirname, '..', 'web', 'dist');
 
 // Serve static files (CSS, JS, images, etc.)
 app.use(express.static(nextDistPath));
@@ -78,23 +78,11 @@ app.use(express.static(nextDistPath));
 // Serve Next.js pages (for client-side routing)
 app.get('*', (req, res, next) => {
   // Skip if it's an API route (already handled above)
-  if (req.path.startsWith('/api') || req.path === '/health') {
-    return next();
-  }
-  console.log({ nextDistPath});
-  console.log('Serving file:', req.path);
-  // Try to serve the specific file
-  const filePath = path.join(nextDistPath, req.path);
-  res.sendFile(filePath, (err) => {
-    console.log({ filePath, err});
-    if (err) {
       // If file not found, serve index.html (for client-side routing)
-      res.sendFile(path.join(nextDistPath, 'index.html'), (err) => {
-        if (err) {
-          // If index.html also not found, pass to error handler
-          return next();
-        }
-      });
+  res.sendFile(path.join(nextDistPath, 'index.html'), (err) => {
+    if (err) {
+      // If index.html also not found, pass to error handler
+      return next();
     }
   });
 });
