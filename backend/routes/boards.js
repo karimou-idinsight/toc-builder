@@ -2,6 +2,9 @@ import express from 'express';
 import Board from '../models/Board.js';
 import BoardPermission from '../models/BoardPermission.js';
 import BoardInvitation from '../models/BoardInvitation.js';
+import BoardList from '../models/BoardList.js';
+import BoardNode from '../models/BoardNode.js';
+import BoardEdge from '../models/BoardEdge.js';
 import { 
   authenticateToken, 
   requireBoardOwner,
@@ -336,5 +339,108 @@ router.get('/invitations/pending', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to get pending invitations' });
   }
 });
+
+// ============================
+// Board Content Routes (Lists, Nodes, Edges)
+// ============================
+
+// Get full board data (lists, nodes, edges)
+router.get('/:boardId/data', authenticateToken, requireBoardViewer, async (req, res) => {
+  try {
+    const boardData = await req.board.getFullBoardData();
+    res.json({ board: boardData });
+  } catch (error) {
+    console.error('Get board data error:', error);
+    res.status(500).json({ error: 'Failed to get board data' });
+  }
+});
+
+// ============================
+// List Routes
+// ============================
+
+// Create list
+router.post('/:boardId/lists', authenticateToken, requireBoardContributor, async (req, res) => {
+  try {
+    const { id, name, color, type, nodeIds = [] } = req.body;
+    
+    if (!id || !name || !color || !type) {
+      return res.status(400).json({ error: 'List id, name, color, and type are required' });
+    }
+    
+    const list = await BoardList.create({ id, name, color, type, nodeIds });
+    await req.board.addList(id);
+    
+    res.status(201).json({
+      message: 'List created successfully',
+      list: list.toJSON()
+    });
+  } catch (error) {
+    console.error('Create list error:', error);
+    res.status(500).json({ error: 'Failed to create list' });
+  }
+});
+
+// Update list
+router.put('/:boardId/lists/:listId', authenticateToken, requireBoardContributor, async (req, res) => {
+  try {
+    const { listId } = req.params;
+    const { name, color, type, nodeIds } = req.body;
+    
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (color !== undefined) updateData.color = color;
+    if (type !== undefined) updateData.type = type;
+    if (nodeIds !== undefined) updateData.nodeIds = nodeIds;
+    
+    const updatedList = await BoardList.update(listId, updateData);
+    
+    if (!updatedList) {
+      return res.status(404).json({ error: 'List not found' });
+    }
+    
+    res.json({
+      message: 'List updated successfully',
+      list: updatedList.toJSON()
+    });
+  } catch (error) {
+    console.error('Update list error:', error);
+    res.status(500).json({ error: 'Failed to update list' });
+  }
+});
+
+// Delete list
+router.delete('/:boardId/lists/:listId', authenticateToken, requireBoardContributor, async (req, res) => {
+  try {
+    const { listId } = req.params;
+    
+    await req.board.removeList(listId);
+    await BoardList.delete(listId);
+    
+    res.json({ message: 'List deleted successfully' });
+  } catch (error) {
+    console.error('Delete list error:', error);
+    res.status(500).json({ error: 'Failed to delete list' });
+  }
+});
+
+// Reorder lists
+router.put('/:boardId/lists-order', authenticateToken, requireBoardContributor, async (req, res) => {
+  try {
+    const { listIds } = req.body;
+    
+    if (!Array.isArray(listIds)) {
+      return res.status(400).json({ error: 'listIds must be an array' });
+    }
+    
+    await req.board.reorderLists(listIds);
+    
+    res.json({ message: 'Lists reordered successfully' });
+  } catch (error) {
+    console.error('Reorder lists error:', error);
+    res.status(500).json({ error: 'Failed to reorder lists' });
+  }
+});
+
 
 export default router;

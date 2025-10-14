@@ -8,6 +8,7 @@ class Board {
     this.owner_id = data.owner_id;
     this.is_public = data.is_public;
     this.settings = data.settings || {};
+    this.list_ids = data.list_ids || [];
     this.created_at = data.created_at;
     this.updated_at = data.updated_at;
   }
@@ -127,14 +128,14 @@ class Board {
 
   // Update board
   async update(updateData) {
-    const allowedFields = ['title', 'description', 'is_public', 'settings'];
+    const allowedFields = ['title', 'description', 'is_public', 'settings', 'list_ids'];
     const updates = [];
     const values = [];
     let paramCount = 1;
 
     for (const [key, value] of Object.entries(updateData)) {
       if (allowedFields.includes(key)) {
-        if (key === 'settings') {
+        if (key === 'settings' || key === 'list_ids') {
           updates.push(`${key} = $${paramCount}`);
           values.push(JSON.stringify(value));
         } else {
@@ -164,6 +165,9 @@ class Board {
     boardData.settings = typeof boardData.settings === 'string' 
       ? JSON.parse(boardData.settings) 
       : boardData.settings;
+    boardData.list_ids = typeof boardData.list_ids === 'string'
+      ? JSON.parse(boardData.list_ids)
+      : boardData.list_ids;
     
     return new Board(boardData);
   }
@@ -253,6 +257,51 @@ class Board {
     };
   }
 
+  // Get full board data with lists, nodes, and edges
+  async getFullBoardData() {
+    const { default: BoardList } = await import('./BoardList.js');
+    const { default: BoardNode } = await import('./BoardNode.js');
+    const { default: BoardEdge } = await import('./BoardEdge.js');
+
+    // Get all lists for this board
+    const lists = await BoardList.findByIds(this.list_ids);
+    
+    // Collect all node IDs from all lists
+    const allNodeIds = lists.reduce((acc, list) => {
+      return [...acc, ...list.nodeIds];
+    }, []);
+    
+    // Get all nodes
+    const nodes = await BoardNode.findByIds(allNodeIds);
+    
+    // Get all edges for these nodes
+    const edges = await BoardEdge.findByNodes(allNodeIds);
+    
+    return {
+      ...this.toJSON(),
+      lists: lists.map(l => l.toJSON()),
+      nodes: nodes.map(n => n.toJSON()),
+      edges: edges.map(e => e.toJSON())
+    };
+  }
+
+  // Add list to board
+  async addList(listId) {
+    const list_ids = [...this.list_ids, listId];
+    return this.update({ list_ids });
+  }
+
+  // Remove list from board
+  async removeList(listId) {
+    const list_ids = this.list_ids.filter(id => id !== listId);
+    return this.update({ list_ids });
+  }
+
+  // Reorder lists
+  async reorderLists(list_ids) {
+    return this.update({ list_ids });
+  }
+
   toJSON() {
     return {
       id: this.id,
@@ -261,10 +310,12 @@ class Board {
       owner_id: this.owner_id,
       is_public: this.is_public,
       settings: this.settings,
+      list_ids: this.list_ids,
       created_at: this.created_at,
       updated_at: this.updated_at
     };
   }
 }
+
 
 export default Board;
