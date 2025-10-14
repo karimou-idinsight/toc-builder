@@ -1,15 +1,29 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "type": "module",
   "description": "Express.js backend API server serving static web app",
   "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "migrate": "cd .. && db-migrate up",
+    "migrate:down": "cd .. && db-migrate down",
+    "migrate:create": "cd .. && db-migrate create",
+    "migrate:reset": "cd .. && db-migrate reset",
+    "migrate:check": "cd .. && db-migrate check"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "bcrypt": "^6.0.0",
+    "connect-redis": "^9.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.18.2",
+    "express-session": "^1.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "pg": "^8.16.3",
+    "redis": "^5.8.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

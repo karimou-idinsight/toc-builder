@@ -6,9 +6,17 @@
   "scripts": {
     "build": "cd backend && npm install && cd ../web && npm install && npm run build",
     "start": "node backend/server.js",
-    "start:local": "NODE_ENV=local node backend/server.js"
+    "start:local": "NODE_ENV=local node backend/server.js",
+    "dev": "cd backend && npm run dev",
+    "migrate": "db-migrate up",
+    "migrate:down": "db-migrate down",
+    "migrate:create": "db-migrate create",
+    "migrate:reset": "db-migrate reset",
+    "migrate:check": "db-migrate check"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "db-migrate": "^0.11.14",
+    "db-migrate-pg": "^1.5.2"
   }
 }
