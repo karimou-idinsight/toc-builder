@@ -12,6 +12,8 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
     if (!loading) {
       // If authentication is required but user is not authenticated
       if (requireAuth && !user) {
+        // Store the current path to redirect back after login
+        sessionStorage.setItem('redirectAfterLogin', router.asPath);
         router.push('/login');
         return;
       }

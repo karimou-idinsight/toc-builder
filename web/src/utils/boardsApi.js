@@ -12,10 +12,19 @@ const getAuthHeaders = () => {
 
 // Handle API errors
 const handleResponse = async (response) => {
-  const data = await response.json();
+  let data;
+  
+  // Try to parse JSON, but handle cases where response is not JSON
+  try {
+    const text = await response.text();
+    data = text ? JSON.parse(text) : {};
+  } catch (error) {
+    // If parsing fails, response wasn't JSON
+    throw new Error(`Server returned invalid response: ${response.status} ${response.statusText}`);
+  }
   
   if (!response.ok) {
-    throw new Error(data.error || 'API request failed');
+    throw new Error(data.error || data.message || 'API request failed');
   }
   
   return data;

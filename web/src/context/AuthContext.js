@@ -74,11 +74,18 @@ export function AuthProvider({ children }) {
       // Set user
       setUser(data.user);
 
-      // Redirect based on role
-      if (data.user.role === 'super_admin') {
-        router.push('/admin');
+      // Check if there's a redirect path stored (for when user tried to access a protected page)
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin');
+      if (redirectPath) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        router.push(redirectPath);
       } else {
-        router.push('/boards');
+        // Default redirect based on role
+        if (data.user.role === 'super_admin') {
+          router.push('/admin');
+        } else {
+          router.push('/boards');
+        }
       }
 
       return { success: true };
