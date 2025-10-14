@@ -34,25 +34,36 @@ BEGIN
   ) RETURNING id INTO v_board_id;
   
   -- Create Lists
-  INSERT INTO board_lists (board_id, name, color, type, "order", created_at, updated_at)
-  VALUES (v_board_id, 'Activities', '#3b82f6', 'fixed', 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  INSERT INTO board_lists (board_id, name, color, type, created_at, updated_at)
+  VALUES (v_board_id, 'Activities', '#3b82f6', 'fixed', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   RETURNING id INTO v_activities_list_id;
   
-  INSERT INTO board_lists (board_id, name, color, type, "order", created_at, updated_at)
-  VALUES (v_board_id, 'Outputs', '#10b981', 'fixed', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  INSERT INTO board_lists (board_id, name, color, type, created_at, updated_at)
+  VALUES (v_board_id, 'Outputs', '#10b981', 'fixed', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   RETURNING id INTO v_outputs_list_id;
   
-  INSERT INTO board_lists (board_id, name, color, type, "order", created_at, updated_at)
-  VALUES (v_board_id, 'Intermediate Outcomes', '#f59e0b', 'intermediate', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  INSERT INTO board_lists (board_id, name, color, type, created_at, updated_at)
+  VALUES (v_board_id, 'Intermediate Outcomes', '#f59e0b', 'intermediate', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   RETURNING id INTO v_intermediate_list_id;
   
-  INSERT INTO board_lists (board_id, name, color, type, "order", created_at, updated_at)
-  VALUES (v_board_id, 'Final Outcomes', '#ef4444', 'fixed', 3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  INSERT INTO board_lists (board_id, name, color, type, created_at, updated_at)
+  VALUES (v_board_id, 'Final Outcomes', '#ef4444', 'fixed', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   RETURNING id INTO v_final_outcomes_list_id;
   
-  INSERT INTO board_lists (board_id, name, color, type, "order", created_at, updated_at)
-  VALUES (v_board_id, 'Impact', '#8b5cf6', 'fixed', 4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  INSERT INTO board_lists (board_id, name, color, type, created_at, updated_at)
+  VALUES (v_board_id, 'Impact', '#8b5cf6', 'fixed', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   RETURNING id INTO v_impact_list_id;
+  
+  -- Update board with list_ids in the correct order
+  UPDATE boards 
+  SET list_ids = jsonb_build_array(
+    v_activities_list_id,
+    v_outputs_list_id,
+    v_intermediate_list_id,
+    v_final_outcomes_list_id,
+    v_impact_list_id
+  )
+  WHERE id = v_board_id;
   
 END $$;
 

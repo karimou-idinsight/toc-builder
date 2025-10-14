@@ -8,7 +8,6 @@ CREATE TABLE board_lists (
   name VARCHAR(255) NOT NULL,
   color VARCHAR(7) NOT NULL,
   type VARCHAR(50) NOT NULL CHECK (type IN ('fixed', 'intermediate')),
-  "order" INTEGER NOT NULL DEFAULT 0,
   node_ids JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -38,7 +37,6 @@ CREATE TABLE board_edges (
 
 -- Create indexes for board_lists
 CREATE INDEX idx_board_lists_board_id ON board_lists(board_id);
-CREATE INDEX idx_board_lists_order ON board_lists(board_id, "order");
 
 -- Create indexes for board_nodes
 CREATE INDEX idx_board_nodes_tags ON board_nodes USING GIN (tags);
