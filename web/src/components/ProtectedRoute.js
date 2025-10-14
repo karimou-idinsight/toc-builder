@@ -37,17 +37,6 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
     return null;
   }
 
-  // Redirect: user is authenticated but trying to access auth pages (login/register)
-  if (!requireAuth && user) {
-    if (typeof window !== 'undefined') {
-      if (userIsSuperAdmin) {
-        router.replace('/admin');
-      } else {
-        router.replace('/boards');
-      }
-    }
-    return null;
-  }
 
   // All checks passed - render the protected content
   return <>{children}</>;
