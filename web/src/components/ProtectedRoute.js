@@ -7,6 +7,12 @@ import { useAuth } from '../context/AuthContext';
 export default function ProtectedRoute({ children, requireAuth = true, requireSuperAdmin = false }) {
   const { user, loading, isSuperAdmin } = useAuth();
   const router = useRouter();
+  const routerRef = useRef(router);
+  
+  // Keep router ref updated
+  useEffect(() => {
+    routerRef.current = router;
+  }, [router]);
   
   // Track if we've already initiated a redirect to prevent race conditions
   // This ref persists across re-renders but resets on route changes
@@ -54,8 +60,10 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
     }
 
     const userIsSuperAdmin = user?.role === 'super_admin';
+    const currentRouter = routerRef.current;
+    
     console.log('[ProtectedRoute] Auth check:', { 
-      path: router.asPath, 
+      path: currentRouter.asPath, 
       user: user?.email, 
       requireAuth, 
       requireSuperAdmin,
@@ -69,8 +77,8 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
       console.log('[ProtectedRoute] Redirecting to login - no user and no token');
       hasRedirected.current = true;
       // Store the current path to redirect back after login
-      sessionStorage.setItem('redirectAfterLogin', router.asPath);
-      router.push('/login');
+      sessionStorage.setItem('redirectAfterLogin', currentRouter.asPath);
+      currentRouter.replace('/login');
       return;
     }
     
@@ -79,8 +87,8 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
       console.log('[ProtectedRoute] Redirecting to login - token invalid');
       hasRedirected.current = true;
       setHasToken(false); // Clear the token flag
-      sessionStorage.setItem('redirectAfterLogin', router.asPath);
-      router.push('/login');
+      sessionStorage.setItem('redirectAfterLogin', currentRouter.asPath);
+      currentRouter.replace('/login');
       return;
     }
 
@@ -88,7 +96,7 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
     if (requireSuperAdmin && !userIsSuperAdmin) {
       console.log('[ProtectedRoute] Redirecting to / - not super admin');
       hasRedirected.current = true;
-      router.push('/');
+      currentRouter.replace('/');
       return;
     }
 
@@ -97,16 +105,16 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
       console.log('[ProtectedRoute] Redirecting authenticated user from auth page');
       hasRedirected.current = true;
       if (userIsSuperAdmin) {
-        router.push('/admin');
+        currentRouter.replace('/admin');
       } else {
-        router.push('/boards');
+        currentRouter.replace('/boards');
       }
       return;
     }
 
     console.log('[ProtectedRoute] No redirect needed - showing content');
       
-  }, [user, loading, requireAuth, requireSuperAdmin, hasToken, router]);
+  }, [user, loading, requireAuth, requireSuperAdmin, hasToken]);
 
   // Show loading state OR if we have a token but no user yet (auth in progress)
   if (loading || (hasToken && !user && requireAuth)) {
