@@ -15,8 +15,8 @@ const pool = new Pool(
   isLocal
   ? {
       // Local: use individual database parameters
-      database: process.env.DB_NAME,
-      port: process.env.DB_PORT || 5432,
+      database: process.env.DATABASE_NAME,
+      port: process.env.DATABASE_PORT || 5432,
   }
   : {
       // Production: use DATABASE_URL
