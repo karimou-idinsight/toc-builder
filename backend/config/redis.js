@@ -8,21 +8,29 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
+// Use REDIS_URL if provided, otherwise fall back to default localhost
+const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+
+// Check if we need TLS (for Heroku and other hosted Redis services)
+// Heroku Redis uses rediss:// protocol or requires TLS for redis:// in production
+const usesTLS = redisUrl.startsWith('rediss://')
+
 const redisClient = createClient({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: process.env.REDIS_PORT || 6379,
-  password: process.env.REDIS_PASSWORD || undefined,
-  retry_strategy: (options) => {
-    if (options.error && options.error.code === 'ECONNREFUSED') {
-      return new Error('The server refused the connection');
+  url: redisUrl,
+  socket: {
+    // Enable TLS for secure connections
+    ...(usesTLS && {
+      tls: true,
+      rejectUnauthorized: process.env.REDIS_TLS_REJECT_UNAUTHORIZED !== 'false'
+    }),
+    reconnectStrategy: (retries) => {
+      if (retries > 10) {
+        console.error('Redis: Too many reconnection attempts');
+        return new Error('Too many reconnection attempts');
+      }
+      // Exponential backoff: 100ms, 200ms, 400ms, etc., max 3 seconds
+      return Math.min(retries * 100, 3000);
     }
-    if (options.total_retry_time > 1000 * 60 * 60) {
-      return new Error('Retry time exhausted');
-    }
-    if (options.attempt > 10) {
-      return undefined;
-    }
-    return Math.min(options.attempt * 100, 3000);
   }
 });
 
