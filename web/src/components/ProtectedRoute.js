@@ -7,6 +7,8 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
   const { user, loading } = useAuth();
   const router = useRouter();
 
+  console.log({ user, loading, requireAuth, requireSuperAdmin });
+
   // Show loading screen while auth is being checked
   if (loading) {
     return (
