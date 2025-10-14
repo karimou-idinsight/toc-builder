@@ -22,22 +22,22 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
   // After loading completes, handle auth requirements
   const userIsSuperAdmin = user?.role === 'super_admin';
 
-  // Redirect: authentication required but user is not authenticated
-  if (requireAuth && !user) {
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('redirectAfterLogin', router.asPath);
-      router.replace('/login');
-    }
-    return null;
-  }
+  // // Redirect: authentication required but user is not authenticated
+  // if (requireAuth && !user) {
+  //   if (typeof window !== 'undefined') {
+  //     sessionStorage.setItem('redirectAfterLogin', router.asPath);
+  //     router.replace('/login');
+  //   }
+  //   return null;
+  // }
 
-  // Redirect: super admin access required but user is not super admin
-  if (requireSuperAdmin && user && !userIsSuperAdmin) {
-    if (typeof window !== 'undefined') {
-      router.replace('/boards');
-    }
-    return null;
-  }
+  // // Redirect: super admin access required but user is not super admin
+  // if (requireSuperAdmin && user && !userIsSuperAdmin) {
+  //   if (typeof window !== 'undefined') {
+  //     router.replace('/boards');
+  //   }
+  //   return null;
+  // }
 
 
   // All checks passed - render the protected content
