@@ -45,6 +45,7 @@ export function AuthProvider({ children }) {
       console.error('Auth check failed:', error);
       setUser(null);
     } finally {
+      console.log('Auth check complete');
       setLoading(false);
     }
   };

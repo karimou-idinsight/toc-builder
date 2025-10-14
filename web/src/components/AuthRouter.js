@@ -11,20 +11,11 @@ import { useAuth } from '../context/AuthContext';
 export default function AuthRouter({ children }) {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const hasChecked = useRef(false);
-
-  useEffect(() => {
-    // Reset on path change
-    hasChecked.current = false;
-  }, [router.asPath]);
 
   useEffect(() => {
     // Wait for auth to load
     if (loading) return;
     
-    // Only check once per page
-    if (hasChecked.current) return;
-    hasChecked.current = true;
 
     const path = router.pathname;
     const userIsSuperAdmin = user?.role === 'super_admin';
