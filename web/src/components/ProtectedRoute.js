@@ -1,21 +1,32 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 
 export default function ProtectedRoute({ children, requireAuth = true, requireSuperAdmin = false }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const redirecting = useRef(false);
+  const lastPath = useRef('');
+
+  // Reset redirecting flag when path changes
+  useEffect(() => {
+    if (lastPath.current !== router.asPath) {
+      redirecting.current = false;
+      lastPath.current = router.asPath;
+    }
+  }, [router.asPath]);
 
   useEffect(() => {
     // Only run redirect logic once loading is complete
-    if (loading) return;
+    if (loading || redirecting.current) return;
 
     const userIsSuperAdmin = user?.role === 'super_admin';
 
     // If authentication is required but user is not authenticated
     if (requireAuth && !user) {
+      redirecting.current = true;
       sessionStorage.setItem('redirectAfterLogin', router.asPath);
       router.replace('/login');
       return;
@@ -23,12 +34,14 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
 
     // If super admin access is required but user is not super admin
     if (requireSuperAdmin && user && !userIsSuperAdmin) {
+      redirecting.current = true;
       router.replace('/boards');
       return;
     }
 
     // If user is authenticated but trying to access auth pages (login/register)
     if (!requireAuth && user) {
+      redirecting.current = true;
       if (userIsSuperAdmin) {
         router.replace('/admin');
       } else {
@@ -36,7 +49,8 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
       }
       return;
     }
-  }, [user, loading, requireAuth, requireSuperAdmin, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, loading, requireAuth, requireSuperAdmin]);
 
   // Show loading screen while auth is being checked
   if (loading) {
