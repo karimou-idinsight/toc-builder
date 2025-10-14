@@ -2,10 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import ProtectedRoute from '../../components/ProtectedRoute';
 import { useAuth } from '../../context/AuthContext';
 import { adminApi } from '../../utils/adminApi';
 
 export default function AdminDashboard() {
+  return (
+    <ProtectedRoute requireSuperAdmin={true}>
+      <AdminDashboardContent />
+    </ProtectedRoute>
+  );
+}
+
+function AdminDashboardContent() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [stats, setStats] = useState(null);

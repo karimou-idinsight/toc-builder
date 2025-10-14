@@ -51,8 +51,10 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Rate limiting
-app.use(rateLimit());
+// Rate limiting - Only apply in production, use generous limits in development
+if (process.env.NODE_ENV === 'production') {
+  app.use(rateLimit());
+}
 
 // Health check endpoint
 app.get('/health', (req, res) => {

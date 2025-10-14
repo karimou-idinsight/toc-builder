@@ -3,13 +3,15 @@
 import { useRouter } from 'next/router';
 import TocBoard from '../../components/TocBoard';
 import ClientOnly from '../../components/ClientOnly';
+import ProtectedRoute from '../../components/ProtectedRoute';
 
 export default function BoardPage() {
   const router = useRouter();
   const { id } = router.query;
 
   return (
-    <div className="app">
+    <ProtectedRoute>
+      <div className="app">
       <ClientOnly fallback={
         <div style={{ 
           display: 'flex', 
@@ -37,6 +39,7 @@ export default function BoardPage() {
         <TocBoard boardId={id} />
       </ClientOnly>
     </div>
+    </ProtectedRoute>
   );
 }
 
