@@ -2,19 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import ProtectedRoute from '../../../components/ProtectedRoute';
 import { useAuth } from '../../../context/AuthContext';
 import { adminApi } from '../../../utils/adminApi';
 
 export default function UsersManagement() {
-  return (
-    <ProtectedRoute requireSuperAdmin={true}>
-      <UsersManagementContent />
-    </ProtectedRoute>
-  );
-}
-
-function UsersManagementContent() {
   const router = useRouter();
   const { logout } = useAuth();
   const [users, setUsers] = useState([]);

@@ -3,19 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import ProtectedRoute from '../../components/ProtectedRoute';
 import { useAuth } from '../../context/AuthContext';
 import { boardsApi } from '../../utils/boardsApi';
 
 export default function BoardsPage() {
-  return (
-    <ProtectedRoute>
-      <BoardsPageContent />
-    </ProtectedRoute>
-  );
-}
-
-function BoardsPageContent() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [boards, setBoards] = useState([]);
