@@ -32,7 +32,7 @@ export default function AuthRouter({ children }) {
     if (hasChecked.current) return;
     hasChecked.current = true;
 
-    const path = router.pathname;
+    const path = router.asPath;
     const userIsSuperAdmin = user?.role === 'super_admin';
 
     console.log('[AuthRouter] Checking path:', path, 'asPath:', router.asPath, 'User:', user?.email, 'isReady:', router.isReady);
