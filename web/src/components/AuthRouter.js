@@ -11,16 +11,25 @@ import { useAuth } from '../context/AuthContext';
 export default function AuthRouter({ children }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const hasChecked = useRef(false);
+
+  // Reset check flag when path changes
+  useEffect(() => {
+    hasChecked.current = false;
+  }, [router.asPath]);
 
   useEffect(() => {
     // Wait for auth to load
     if (loading) return;
     
+    // Only check once per page
+    if (hasChecked.current) return;
+    hasChecked.current = true;
 
     const path = router.pathname;
     const userIsSuperAdmin = user?.role === 'super_admin';
 
-    console.log('[AuthRouter] Checking path:', path, 'User:', user?.email);
+    console.log('[AuthRouter] Checking path:', path, 'asPath:', router.asPath, 'User:', user?.email);
 
     // Define route categories
     const publicRoutes = ['/'];
