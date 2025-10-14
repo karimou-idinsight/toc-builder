@@ -1,39 +1,69 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 
 export default function ProtectedRoute({ children, requireAuth = true, requireSuperAdmin = false }) {
   const { user, loading, isSuperAdmin } = useAuth();
   const router = useRouter();
+  
+  // Track if we've already initiated a redirect to prevent race conditions
+  // This ref persists across re-renders but resets on route changes
+  // Without this, the useEffect could fire multiple times during auth loading,
+  // causing unwanted redirects (e.g., redirecting from /board/1 to /boards)
+  const hasRedirected = useRef(false);
+
+  // Reset the redirect flag whenever the user navigates to a new page
+  // This ensures each new page gets a fresh chance to evaluate auth requirements
+  useEffect(() => {
+    const handleRouteChange = () => {
+      hasRedirected.current = false;
+    };
+
+    router.events?.on('routeChangeStart', handleRouteChange);
+    return () => {
+      router.events?.off('routeChangeStart', handleRouteChange);
+    };
+  }, [router]);
 
   useEffect(() => {
-    if (!loading) {
-      // If authentication is required but user is not authenticated
-      if (requireAuth && !user) {
-        // Store the current path to redirect back after login
-        sessionStorage.setItem('redirectAfterLogin', router.asPath);
-        router.push('/login');
-        return;
-      }
-
-      // If super admin access is required but user is not super admin
-      if (requireSuperAdmin && !isSuperAdmin()) {
-        router.push('/');
-        return;
-      }
-
-      // If user is authenticated but trying to access auth pages
-      if (!requireAuth && user) {
-        if (isSuperAdmin()) {
-          router.push('/admin');
-        } else {
-          router.push('/boards');
-        }
-        return;
-      }
+    // Don't do anything while loading
+    if (loading) {
+      return;
     }
+
+    // Prevent multiple redirects within the same page load
+    // If we've already initiated a redirect, don't do it again
+    if (hasRedirected.current) return;
+
+    // If authentication is required but user is not authenticated
+    if (requireAuth && !user) {
+      hasRedirected.current = true;
+      // Store the current path to redirect back after login
+      sessionStorage.setItem('redirectAfterLogin', router.asPath);
+      router.push('/login');
+      return;
+    }
+
+    // If super admin access is required but user is not super admin
+    if (requireSuperAdmin && !isSuperAdmin()) {
+      hasRedirected.current = true;
+      router.push('/');
+      return;
+    }
+
+    // If user is authenticated but trying to access auth pages
+    if (!requireAuth && user) {
+      hasRedirected.current = true;
+      if (isSuperAdmin()) {
+        router.push('/admin');
+      } else {
+        router.push('/boards');
+      }
+      return;
+    }
+      
   }, [user, loading, requireAuth, requireSuperAdmin, router, isSuperAdmin]);
 
   // Show loading state
