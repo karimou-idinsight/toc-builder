@@ -99,11 +99,14 @@ class Board {
   // Find boards user has access to
   static async findByUserAccess(userId) {
     const query = `
-      SELECT DISTINCT b.*, bp.role
+      SELECT DISTINCT 
+        b.*, 
+        bp.role,
+        (SELECT COUNT(DISTINCT user_id) FROM board_permissions WHERE board_id = b.id) as collaborator_count
       FROM boards b
       LEFT JOIN board_permissions bp ON b.id = bp.board_id
       WHERE b.owner_id = $1 OR bp.user_id = $1
-      ORDER BY b.created_at DESC
+      ORDER BY b.updated_at DESC
     `;
     
     const result = await pool.query(query, [userId]);
@@ -112,9 +115,12 @@ class Board {
       row.settings = typeof row.settings === 'string' 
         ? JSON.parse(row.settings) 
         : row.settings;
+      const board = new Board(row);
       return {
-        ...new Board(row),
-        user_role: row.role || 'owner'
+        ...board.toJSON(),
+        role: row.role || 'owner',
+        name: board.title, // Add name field for frontend compatibility
+        collaborator_count: parseInt(row.collaborator_count) || 0
       };
     });
   }

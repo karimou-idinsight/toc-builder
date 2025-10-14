@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 
 const AuthContext = createContext({});
 
@@ -75,7 +75,7 @@ export function AuthProvider({ children }) {
       if (data.user.role === 'super_admin') {
         router.push('/admin');
       } else {
-        router.push('/');
+        router.push('/boards');
       }
 
       return { success: true };
@@ -109,8 +109,8 @@ export function AuthProvider({ children }) {
       // Set user
       setUser(data.user);
 
-      // Redirect to home
-      router.push('/');
+      // Redirect to boards
+      router.push('/boards');
 
       return { success: true };
     } catch (error) {

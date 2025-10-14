@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 
-export function ProtectedRoute({ children, requireAuth = true, requireSuperAdmin = false }) {
+export default function ProtectedRoute({ children, requireAuth = true, requireSuperAdmin = false }) {
   const { user, loading, isSuperAdmin } = useAuth();
   const router = useRouter();
 
@@ -27,7 +27,7 @@ export function ProtectedRoute({ children, requireAuth = true, requireSuperAdmin
         if (isSuperAdmin()) {
           router.push('/admin');
         } else {
-          router.push('/');
+          router.push('/boards');
         }
         return;
       }
@@ -51,10 +51,10 @@ export function ProtectedRoute({ children, requireAuth = true, requireSuperAdmin
         <h1 style={styles.errorTitle}>Unauthorized</h1>
         <p style={styles.errorText}>You do not have permission to access this page.</p>
         <button
-          onClick={() => router.push('/')}
+          onClick={() => router.push('/boards')}
           style={styles.button}
         >
-          Go to Home
+          Go to Boards
         </button>
       </div>
     );

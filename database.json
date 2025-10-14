@@ -1,28 +1,11 @@
 {
   "dev": {
     "driver": "pg",
-    "user": {"ENV": "DB_USER"},
-    "password": {"ENV": "DB_PASSWORD"},
-    "host": {"ENV": "DB_HOST"},
-    "database": {"ENV": "DB_NAME"},
-    "port": {"ENV": "DB_PORT"}
-  },
-  "test": {
-    "driver": "pg",
-    "user": {"ENV": "DB_USER"},
-    "password": {"ENV": "DB_PASSWORD"},
-    "host": {"ENV": "DB_HOST"},
-    "database": "toc_test",
-    "port": {"ENV": "DB_PORT"}
-  },
-  "production": {
-    "driver": "pg",
-    "user": {"ENV": "DB_USER"},
-    "password": {"ENV": "DB_PASSWORD"},
-    "host": {"ENV": "DB_HOST"},
-    "database": {"ENV": "DB_NAME"},
-    "port": {"ENV": "DB_PORT"},
-    "ssl": true
+    "host": "127.0.0.1",
+    "port": 5432,
+    "database": "toc_builder",
+    "user": "postgres",
+    "password": "postgres"
   }
 }
 

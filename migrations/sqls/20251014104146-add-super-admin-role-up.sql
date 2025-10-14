@@ -17,7 +17,7 @@ INSERT INTO users (
   updated_at
 ) VALUES (
   'admin@tocbuilder.com',
-  '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J.8KzKz2K', -- admin123
+  '$2b$12$Gm.UDk7/PttlziNsuhFaJ.tsaV/YNh60EbEGihwG5UPOBv0DubH5q', -- admin123
   'Super',
   'Admin',
   true,
