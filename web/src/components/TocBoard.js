@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, closestCenter } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
@@ -10,6 +10,8 @@ import TocToolbar from './TocToolbar';
 import TocEdges from './TocEdges';
 import TocEdgesLegend from './TocEdgesLegend';
 import { createBoard, createNode, createList, createEdge, NODE_TYPES, EDGE_TYPES } from '../utils/tocModels';
+import { boardsApi } from '../utils/boardsApi';
+import { transformBoardData } from '../utils/boardTransformer';
 import { tocBoardStyles } from '../styles/TocBoard.styles';
 import {
   initializeBoard,
@@ -57,6 +59,8 @@ import {
 export default function TocBoard({ boardId = 'default' }) {
   const dispatch = useDispatch();
   const boardInnerRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // Get state from Redux
   const board = useSelector(selectBoard);
@@ -75,13 +79,41 @@ export default function TocBoard({ boardId = 'default' }) {
   const tagFilterNodes = useSelector(selectTagFilterNodesSet);
 
   useEffect(() => {
-    // Initialize board with default data if not already initialized
-    if (!board) {
-      const initialBoard = createBoard();
-      console.log('Initial board created:', initialBoard);
-      dispatch(initializeBoard(initialBoard));
+    // Load board data from server
+    async function loadBoard() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        if (!boardId || boardId === 'default') {
+          // If no boardId provided, use dummy data for now
+          const initialBoard = createBoard();
+          console.log('Using dummy board data:', initialBoard);
+          dispatch(initializeBoard(initialBoard));
+        } else {
+          // Fetch board data from server
+          console.log('Fetching board data for ID:', boardId);
+          const backendData = await boardsApi.getBoardData(boardId);
+          console.log('Backend data received:', backendData);
+          
+          // Transform backend data to frontend format
+          const transformedBoard = transformBoardData(backendData);
+          console.log('Transformed board data:', transformedBoard);
+          
+          // Initialize board in Redux store
+          dispatch(initializeBoard(transformedBoard));
+        }
+      } catch (err) {
+        console.error('Error loading board:', err);
+        setError(err.message || 'Failed to load board');
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [board, dispatch]);
+
+    // Load the board (this will reinitialize if boardId changes)
+    loadBoard();
+  }, [boardId, dispatch]);
 
   // Wrapper functions for Redux actions
   const addIntermediateOutcome = useCallback((name) => {
@@ -457,6 +489,63 @@ export default function TocBoard({ boardId = 'default' }) {
     }
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div style={{
+        ...tocBoardStyles.container,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        fontSize: '1.2rem',
+        color: '#6b7280'
+      }}>
+        <div style={{ 
+          width: '40px', 
+          height: '40px', 
+          border: '4px solid #e2e8f0',
+          borderTop: '4px solid #3b82f6',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          marginBottom: '1rem'
+        }}></div>
+        <p>Loading Theory of Change Board...</p>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div style={{
+        ...tocBoardStyles.container,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        fontSize: '1.2rem',
+        color: '#ef4444'
+      }}>
+        <p style={{ marginBottom: '1rem' }}>Error loading board: {error}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '0.375rem',
+            cursor: 'pointer',
+            fontSize: '1rem'
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   // Show loading state if board is not ready
   if (!board) {
     return (
@@ -468,7 +557,7 @@ export default function TocBoard({ boardId = 'default' }) {
         fontSize: '1.2rem',
         color: '#6b7280'
       }}>
-        Loading Theory of Change Board...
+        Initializing board...
       </div>
     );
   }

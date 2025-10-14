@@ -3,19 +3,19 @@ import pool from '../config/database.js';
 class BoardEdge {
   constructor(data) {
     this.id = data.id;
-    this.sourceNodeId = data.source_node_id || data.sourceNodeId || data.sourceId;
-    this.targetNodeId = data.target_node_id || data.targetNodeId || data.targetId;
+    this.source_node_id = data.source_node_id;
+    this.target_node_id = data.target_node_id;
     this.type = data.type;
     this.label = data.label || '';
-    this.createdAt = data.created_at || data.createdAt;
+    this.created_at = data.created_at;
   }
 
   // Create a new edge
   static async create(edgeData) {
-    const { id, sourceNodeId, targetNodeId, type, label = '' } = edgeData;
+    const { id, source_node_id, target_node_id, type, label = '' } = edgeData;
     
     // Prevent self-referencing edges
-    if (sourceNodeId === targetNodeId) {
+    if (source_node_id === target_node_id) {
       throw new Error('Cannot create edge from node to itself');
     }
     
@@ -25,7 +25,7 @@ class BoardEdge {
       RETURNING *
     `;
     
-    const values = [id, sourceNodeId, targetNodeId, type, label];
+    const values = [id, source_node_id, target_node_id, type, label];
     const result = await pool.query(query, values);
     
     return new BoardEdge(result.rows[0]);
@@ -44,17 +44,17 @@ class BoardEdge {
   }
 
   // Find edges by source node
-  static async findBySourceNode(sourceNodeId) {
+  static async findBySourceNode(source_node_id) {
     const query = 'SELECT * FROM board_edges WHERE source_node_id = $1';
-    const result = await pool.query(query, [sourceNodeId]);
+    const result = await pool.query(query, [source_node_id]);
     
     return result.rows.map(row => new BoardEdge(row));
   }
 
   // Find edges by target node
-  static async findByTargetNode(targetNodeId) {
+  static async findByTargetNode(target_node_id) {
     const query = 'SELECT * FROM board_edges WHERE target_node_id = $1';
-    const result = await pool.query(query, [targetNodeId]);
+    const result = await pool.query(query, [target_node_id]);
     
     return result.rows.map(row => new BoardEdge(row));
   }
@@ -152,11 +152,11 @@ class BoardEdge {
   toJSON() {
     return {
       id: this.id,
-      sourceId: this.sourceNodeId,
-      targetId: this.targetNodeId,
+      source_node_id: this.source_node_id,
+      target_node_id: this.target_node_id,
       type: this.type,
       label: this.label,
-      createdAt: this.createdAt
+      created_at: this.created_at
     };
   }
 }

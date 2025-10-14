@@ -113,6 +113,51 @@ export const boardsApi = {
       headers: getAuthHeaders()
     });
     return handleResponse(response);
+  },
+
+  // Get full board data (board + lists + nodes + edges)
+  async getBoardData(boardId) {
+    const response = await fetch(`${API_URL}/api/boards/${boardId}/data`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
+
+  // Board Lists
+  async createList(boardId, listData) {
+    const response = await fetch(`${API_URL}/api/boards/${boardId}/lists`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(listData)
+    });
+    return handleResponse(response);
+  },
+
+  async updateList(boardId, listId, listData) {
+    const response = await fetch(`${API_URL}/api/boards/${boardId}/lists/${listId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(listData)
+    });
+    return handleResponse(response);
+  },
+
+  async deleteList(boardId, listId) {
+    const response = await fetch(`${API_URL}/api/boards/${boardId}/lists/${listId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
+
+  async reorderLists(boardId, listIds) {
+    const response = await fetch(`${API_URL}/api/boards/${boardId}/lists-order`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ listIds })
+    });
+    return handleResponse(response);
   }
 };
 

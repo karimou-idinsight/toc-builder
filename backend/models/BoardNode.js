@@ -6,9 +6,9 @@ class BoardNode {
     this.title = data.title;
     this.description = data.description || '';
     this.type = data.type;
-    this.tags = data.tags || [];
-    this.createdAt = data.created_at || data.createdAt;
-    this.updatedAt = data.updated_at || data.updatedAt;
+    this.tags = Array.isArray(data.tags) ? data.tags : [];
+    this.created_at = data.created_at;
+    this.updated_at = data.updated_at;
   }
 
   // Create a new node
@@ -138,8 +138,8 @@ class BoardNode {
       description: this.description,
       type: this.type,
       tags: this.tags,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt
+      created_at: this.created_at,
+      updated_at: this.updated_at
     };
   }
 }

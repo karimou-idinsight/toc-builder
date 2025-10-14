@@ -8,7 +8,17 @@ class Board {
     this.owner_id = data.owner_id;
     this.is_public = data.is_public;
     this.settings = data.settings || {};
-    this.list_ids = data.list_ids || [];
+    
+    // Parse list_ids - could be array or string (JSONB)
+    const listIds = data.list_ids;
+    if (typeof listIds === 'string') {
+      this.list_ids = JSON.parse(listIds);
+    } else if (Array.isArray(listIds)) {
+      this.list_ids = listIds;
+    } else {
+      this.list_ids = [];
+    }
+    
     this.created_at = data.created_at;
     this.updated_at = data.updated_at;
   }
@@ -268,7 +278,7 @@ class Board {
     
     // Collect all node IDs from all lists
     const allNodeIds = lists.reduce((acc, list) => {
-      return [...acc, ...list.nodeIds];
+      return [...acc, ...list.node_ids];
     }, []);
     
     // Get all nodes

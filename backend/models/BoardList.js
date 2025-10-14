@@ -6,14 +6,24 @@ class BoardList {
     this.name = data.name;
     this.color = data.color;
     this.type = data.type;
-    this.nodeIds = data.node_ids || data.nodeIds || [];
-    this.createdAt = data.created_at || data.createdAt;
-    this.updatedAt = data.updated_at || data.updatedAt;
+    
+    // Parse node_ids - could be array or string (JSONB)
+    const node_ids = data.node_ids;
+    if (typeof node_ids === 'string') {
+      this.node_ids = JSON.parse(node_ids);
+    } else if (Array.isArray(node_ids)) {
+      this.node_ids = node_ids;
+    } else {
+      this.node_ids = [];
+    }
+    
+    this.created_at = data.created_at;
+    this.updated_at = data.updated_at;
   }
 
   // Create a new list
   static async create(listData) {
-    const { id, name, color, type, nodeIds = [] } = listData;
+    const { id, name, color, type, node_ids = [] } = listData;
     
     const query = `
       INSERT INTO board_lists (id, name, color, type, node_ids)
@@ -21,7 +31,7 @@ class BoardList {
       RETURNING *
     `;
     
-    const values = [id, name, color, type, JSON.stringify(nodeIds)];
+    const values = [id, name, color, type, JSON.stringify(node_ids)];
     const result = await pool.query(query, values);
     
     return new BoardList(result.rows[0]);
@@ -59,10 +69,9 @@ class BoardList {
     let paramCount = 1;
 
     Object.keys(updates).forEach(key => {
-      const dbKey = key === 'nodeIds' ? 'node_ids' : key;
-      if (allowedFields.includes(dbKey)) {
-        fields.push(`${dbKey} = $${paramCount}`);
-        values.push(dbKey === 'node_ids' ? JSON.stringify(updates[key]) : updates[key]);
+      if (allowedFields.includes(key)) {
+        fields.push(`${key} = $${paramCount}`);
+        values.push(key === 'node_ids' ? JSON.stringify(updates[key]) : updates[key]);
         paramCount++;
       }
     });
@@ -94,19 +103,19 @@ class BoardList {
 
   // Add node to list
   async addNode(nodeId) {
-    const nodeIds = [...this.nodeIds, nodeId];
-    return BoardList.update(this.id, { nodeIds });
+    const node_ids = [...this.node_ids, nodeId];
+    return BoardList.update(this.id, { node_ids });
   }
 
   // Remove node from list
   async removeNode(nodeId) {
-    const nodeIds = this.nodeIds.filter(id => id !== nodeId);
-    return BoardList.update(this.id, { nodeIds });
+    const node_ids = this.node_ids.filter(id => id !== nodeId);
+    return BoardList.update(this.id, { node_ids });
   }
 
   // Reorder nodes in list
-  async reorderNodes(nodeIds) {
-    return BoardList.update(this.id, { nodeIds });
+  async reorderNodes(node_ids) {
+    return BoardList.update(this.id, { node_ids });
   }
 
   // Convert to JSON for API responses
@@ -116,9 +125,9 @@ class BoardList {
       name: this.name,
       color: this.color,
       type: this.type,
-      nodeIds: this.nodeIds,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt
+      node_ids: this.node_ids,
+      created_at: this.created_at,
+      updated_at: this.updated_at
     };
   }
 }

@@ -67,6 +67,23 @@ router.post('/', authenticateToken, requireEmailVerification, async (req, res) =
   }
 });
 
+// Get full board data (board + lists + nodes + edges) - MUST come before /:boardId
+router.get('/:boardId/data', authenticateToken, requireBoardViewer, async (req, res) => {
+  try {
+    // req.board is set by requireBoardViewer middleware
+    const boardData = await req.board.getFullBoardData();
+    
+    if (!boardData) {
+      return res.status(404).json({ error: 'Board data not found' });
+    }
+    
+    res.json(boardData);
+  } catch (error) {
+    console.error('Get board data error:', error);
+    res.status(500).json({ error: 'Failed to get board data' });
+  }
+});
+
 // Get specific board
 router.get('/:boardId', authenticateToken, requireBoardViewer, async (req, res) => {
   try {
