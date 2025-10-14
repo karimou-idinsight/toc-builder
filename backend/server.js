@@ -1,6 +1,7 @@
 import express from 'express';
 import session from 'express-session';
-import RedisStore from 'connect-redis';
+import { createClient } from 'redis';
+import { RedisStore } from 'connect-redis';
 import passport from 'passport';
 import cors from 'cors';
 import path from 'path';
@@ -19,6 +20,7 @@ import { rateLimit } from './middleware/auth.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
 import boardRoutes from './routes/boards.js';
+import adminRoutes from './routes/admin.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -65,6 +67,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/boards', boardRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

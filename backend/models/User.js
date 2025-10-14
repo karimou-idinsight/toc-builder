@@ -16,6 +16,7 @@ class User {
     this.password_reset_token = data.password_reset_token;
     this.password_reset_expires = data.password_reset_expires;
     this.last_login = data.last_login;
+    this.role = data.role || 'user';
     this.created_at = data.created_at;
     this.updated_at = data.updated_at;
   }
@@ -98,7 +99,7 @@ class User {
 
   // Update user
   async update(updateData) {
-    const allowedFields = ['first_name', 'last_name', 'avatar_url', 'is_active'];
+    const allowedFields = ['first_name', 'last_name', 'avatar_url', 'is_active', 'role'];
     const updates = [];
     const values = [];
     let paramCount = 1;
@@ -197,6 +198,7 @@ class User {
       avatar_url: this.avatar_url,
       is_active: this.is_active,
       email_verified: this.email_verified,
+      role: this.role,
       last_login: this.last_login,
       created_at: this.created_at,
       updated_at: this.updated_at
@@ -211,6 +213,58 @@ class User {
       password_reset_token: this.password_reset_token,
       password_reset_expires: this.password_reset_expires
     };
+  }
+
+  // Check if user is super admin
+  isSuperAdmin() {
+    return this.role === 'super_admin';
+  }
+
+  // Get all users (super admin only)
+  static async getAllUsers(limit = 50, offset = 0) {
+    const query = `
+      SELECT id, email, first_name, last_name, avatar_url, is_active, 
+             email_verified, role, last_login, created_at, updated_at
+      FROM users
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `;
+    
+    const result = await pool.query(query, [limit, offset]);
+    return result.rows.map(row => new User(row));
+  }
+
+  // Get user count
+  static async getUserCount() {
+    const query = 'SELECT COUNT(*) as count FROM users';
+    const result = await pool.query(query);
+    return parseInt(result.rows[0].count);
+  }
+
+  // Deactivate user (super admin only)
+  async deactivateUser() {
+    const query = `
+      UPDATE users 
+      SET is_active = false, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [this.id]);
+    return new User(result.rows[0]);
+  }
+
+  // Activate user (super admin only)
+  async activateUser() {
+    const query = `
+      UPDATE users 
+      SET is_active = true, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [this.id]);
+    return new User(result.rows[0]);
   }
 }
 

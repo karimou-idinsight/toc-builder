@@ -98,24 +98,20 @@ const requireBoardReviewer = requireBoardPermission('reviewer');
 // Board viewer middleware
 const requireBoardViewer = requireBoardPermission('viewer');
 
-// Admin middleware (for system-wide admin operations)
-const requireAdmin = async (req, res, next) => {
+// Super Admin middleware (for system-wide admin operations)
+const requireSuperAdmin = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    // For now, we'll implement a simple admin check
-    // In a real app, you might have an admin role in the users table
-    const isAdmin = req.user.email === process.env.ADMIN_EMAIL;
-    
-    if (!isAdmin) {
-      return res.status(403).json({ error: 'Admin access required' });
+    if (!req.user.isSuperAdmin()) {
+      return res.status(403).json({ error: 'Super admin access required' });
     }
 
     next();
   } catch (error) {
-    return res.status(500).json({ error: 'Admin check failed' });
+    return res.status(500).json({ error: 'Super admin check failed' });
   }
 };
 
@@ -194,7 +190,7 @@ export {
   requireBoardContributor,
   requireBoardReviewer,
   requireBoardViewer,
-  requireAdmin,
+  requireSuperAdmin,
   rateLimit,
   requireEmailVerification,
   generateToken,
