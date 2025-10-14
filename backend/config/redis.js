@@ -12,7 +12,7 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
 // Check if we need TLS (for Heroku and other hosted Redis services)
-// Heroku Redis uses rediss:// protocol or requires TLS for redis:// in production
+// Heroku Redis uses rediss:// protocol
 const usesTLS = redisUrl.startsWith('rediss://')
 
 const redisClient = createClient({
@@ -21,7 +21,8 @@ const redisClient = createClient({
     // Enable TLS for secure connections
     ...(usesTLS && {
       tls: true,
-      rejectUnauthorized: process.env.REDIS_TLS_REJECT_UNAUTHORIZED !== 'false'
+      // Heroku Redis uses self-signed certificates, so we need to disable verification
+      rejectUnauthorized: false
     }),
     reconnectStrategy: (retries) => {
       if (retries > 10) {
