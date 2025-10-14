@@ -75,16 +75,9 @@ const nextDistPath = path.join(__dirname, '..', 'web', 'dist');
 // Serve static files (CSS, JS, images, etc.)
 app.use(express.static(nextDistPath));
 
-// Serve Next.js pages (for client-side routing)
-app.get('*', (req, res, next) => {
-  // Skip if it's an API route (already handled above)
-      // If file not found, serve index.html (for client-side routing)
-  res.sendFile(path.join(nextDistPath, 'index.html'), (err) => {
-    if (err) {
-      // If index.html also not found, pass to error handler
-      return next();
-    }
-  });
+// Catch-all route: serve index.html for all non-API routes (enables client-side routing)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(nextDistPath, 'index.html'));
 });
 
 // Error handling middleware

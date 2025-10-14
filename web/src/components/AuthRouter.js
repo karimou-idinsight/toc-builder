@@ -32,7 +32,7 @@ export default function AuthRouter({ children }) {
     if (hasChecked.current) return;
     hasChecked.current = true;
 
-    const path = router.asPath;
+    const path = router.pathname;
     const userIsSuperAdmin = user?.role === 'super_admin';
 
     console.log('[AuthRouter] Checking path:', path, 'asPath:', router.asPath, 'User:', user?.email, 'isReady:', router.isReady);
@@ -72,8 +72,8 @@ export default function AuthRouter({ children }) {
     console.log('[AuthRouter] No redirect needed');
   }, [user, loading, router.pathname, router.asPath, router.isReady, router]);
 
-  // Show loading while auth is being checked
-  if (loading) {
+  // Show loading while auth is being checked OR router is not ready
+  if (loading || !router.isReady) {
     return (
       <div style={styles.loadingContainer}>
         <div style={styles.spinner}></div>
