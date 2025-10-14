@@ -15,19 +15,15 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
   const hasRedirected = useRef(false);
   const currentPath = useRef(router.asPath);
   
-  // Add a small delay before checking auth to avoid race conditions
-  // This gives React time to batch state updates from AuthContext
-  const [isReady, setIsReady] = useState(false);
+  // Check if we have a token - if we do, we should wait for auth to complete
+  // rather than immediately redirecting
+  const [hasToken, setHasToken] = useState(false);
   
   useEffect(() => {
-    if (!loading) {
-      // Small delay to ensure user state has settled
-      const timeout = setTimeout(() => setIsReady(true), 50);
-      return () => clearTimeout(timeout);
-    } else {
-      setIsReady(false);
-    }
-  }, [loading]);
+    // Check for token on mount
+    const token = localStorage.getItem('accessToken');
+    setHasToken(!!token);
+  }, []);
 
   // Reset redirect flag when the path actually changes
   useEffect(() => {
@@ -38,8 +34,15 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
   }, [router.asPath]);
 
   useEffect(() => {
-    // Don't do anything while loading or not ready
-    if (loading || !isReady) {
+    // Don't do anything while loading
+    if (loading) {
+      return;
+    }
+    
+    // If we have a token but no user yet, wait for the auth check to complete
+    // This prevents redirecting during the brief moment between token check and user load
+    if (hasToken && !user && requireAuth) {
+      console.log('[ProtectedRoute] Has token but no user yet - waiting for auth');
       return;
     }
 
@@ -57,14 +60,25 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
       requireAuth, 
       requireSuperAdmin,
       hasRedirected: hasRedirected.current,
-      isReady
+      hasToken,
+      userExists: !!user
     });
 
-    // If authentication is required but user is not authenticated
-    if (requireAuth && !user) {
-      console.log('[ProtectedRoute] Redirecting to login - no user');
+    // If authentication is required but user is not authenticated AND no token exists
+    if (requireAuth && !user && !hasToken) {
+      console.log('[ProtectedRoute] Redirecting to login - no user and no token');
       hasRedirected.current = true;
       // Store the current path to redirect back after login
+      sessionStorage.setItem('redirectAfterLogin', router.asPath);
+      router.push('/login');
+      return;
+    }
+    
+    // If we had a token but auth failed (user is still null after loading completes)
+    if (requireAuth && !user && hasToken && !loading) {
+      console.log('[ProtectedRoute] Redirecting to login - token invalid');
+      hasRedirected.current = true;
+      setHasToken(false); // Clear the token flag
       sessionStorage.setItem('redirectAfterLogin', router.asPath);
       router.push('/login');
       return;
@@ -92,10 +106,10 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
 
     console.log('[ProtectedRoute] No redirect needed - showing content');
       
-  }, [user, loading, isReady, requireAuth, requireSuperAdmin, router]);
+  }, [user, loading, requireAuth, requireSuperAdmin, hasToken, router]);
 
-  // Show loading state (including the brief delay for state settling)
-  if (loading || !isReady) {
+  // Show loading state OR if we have a token but no user yet (auth in progress)
+  if (loading || (hasToken && !user && requireAuth)) {
     return (
       <div style={styles.loadingContainer}>
         <div style={styles.spinner}></div>
