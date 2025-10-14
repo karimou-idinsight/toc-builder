@@ -572,6 +572,7 @@ export default function TocBoard({ boardId = 'default' }) {
         selectedTags={selectedTags}
         onTagsChange={handleTagsChange}
         allTags={getAllTags()}
+        boardId={boardId}
       />
 
       <div style={tocBoardStyles.content}>

@@ -5,10 +5,10 @@ export const tocToolbarStyles = {
   container: {
     backgroundColor: '#ffffff',
     borderBottom: `1px solid ${colors.gray[200]}`,
-    padding: spacing.md,
+    padding: `${spacing.sm} ${spacing.md}`, // Reduced vertical padding
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
   },
 

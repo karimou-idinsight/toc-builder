@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useRouter } from 'next/router';
 import { tocToolbarStyles } from '../styles/TocToolbar.styles';
 import { selectBoard } from '../store/selectors';
 import TocTagSelector from './TocTagSelector';
@@ -13,8 +14,10 @@ export default function TocToolbar({
   onAddIntermediateOutcome,
   selectedTags,
   onTagsChange,
-  allTags
+  allTags,
+  boardId
 }) {
+  const router = useRouter();
   // Get board from Redux instead of props
   const board = useSelector(selectBoard);
   const [isClient, setIsClient] = useState(false);
@@ -63,6 +66,22 @@ export default function TocToolbar({
   return (
     <div style={tocToolbarStyles.container}>
       <div>
+        {boardId && boardId !== 'default' && (
+          <button
+            onClick={() => router.push('/boards')}
+            style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              color: '#3b82f6',
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              padding: '0.25rem 0',
+              marginBottom: '0.5rem'
+            }}
+          >
+            ← Back to My Boards
+          </button>
+        )}
         <h2 style={tocToolbarStyles.title}>{board.name}</h2>
         <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
           {board.lists.length} lists • {board.nodes.length} nodes • {board.edges.length} connections
