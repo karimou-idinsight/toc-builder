@@ -22,6 +22,8 @@ web/.next/
 
 # Next.js build output
 .next
+web/dist/
+web/out/
 
 
 # Editor directories and files
