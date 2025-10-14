@@ -19,7 +19,7 @@ exports.setup = function(options, seedLink) {
 };
 
 exports.up = function(db) {
-  var filePath = path.join(__dirname, 'sqls', '20251014124852-add-board-content-tables-up.sql');
+  var filePath = path.join(__dirname, 'sqls', '20251014131020-seed-sample-board-up.sql');
   return new Promise(function(resolve, reject) {
     fs.readFile(filePath, {encoding: 'utf-8'}, function(err, data) {
       if (err) return reject(err);
@@ -34,7 +34,7 @@ exports.up = function(db) {
 };
 
 exports.down = function(db) {
-  var filePath = path.join(__dirname, 'sqls', '20251014124852-add-board-content-tables-down.sql');
+  var filePath = path.join(__dirname, 'sqls', '20251014131020-seed-sample-board-down.sql');
   return new Promise(function(resolve, reject) {
     fs.readFile(filePath, {encoding: 'utf-8'}, function(err, data) {
       if (err) return reject(err);
@@ -51,4 +51,3 @@ exports.down = function(db) {
 exports._meta = {
   "version": 1
 };
-

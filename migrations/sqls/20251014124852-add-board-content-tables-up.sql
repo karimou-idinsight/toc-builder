@@ -1,12 +1,14 @@
--- Add list_ids to boards table
+-- Add list_ids to boards table (storing array of list IDs)
 ALTER TABLE boards ADD COLUMN list_ids JSONB DEFAULT '[]'::jsonb;
 
 -- Create board_lists table
 CREATE TABLE board_lists (
-  id TEXT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
+  board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
   color VARCHAR(7) NOT NULL,
   type VARCHAR(50) NOT NULL CHECK (type IN ('fixed', 'intermediate')),
+  "order" INTEGER NOT NULL DEFAULT 0,
   node_ids JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -14,7 +16,7 @@ CREATE TABLE board_lists (
 
 -- Create board_nodes table
 CREATE TABLE board_nodes (
-  id TEXT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   title VARCHAR(500) NOT NULL,
   description TEXT,
   type VARCHAR(50) NOT NULL CHECK (type IN ('activity', 'output', 'intermediate_outcome', 'final_outcome', 'impact')),
@@ -25,19 +27,23 @@ CREATE TABLE board_nodes (
 
 -- Create board_edges table
 CREATE TABLE board_edges (
-  id TEXT PRIMARY KEY,
-  source_node_id TEXT NOT NULL REFERENCES board_nodes(id) ON DELETE CASCADE,
-  target_node_id TEXT NOT NULL REFERENCES board_nodes(id) ON DELETE CASCADE,
+  id SERIAL PRIMARY KEY,
+  source_node_id INTEGER NOT NULL REFERENCES board_nodes(id) ON DELETE CASCADE,
+  target_node_id INTEGER NOT NULL REFERENCES board_nodes(id) ON DELETE CASCADE,
   type VARCHAR(50) NOT NULL CHECK (type IN ('leads_to', 'enables', 'requires', 'contributes_to')),
   label VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT no_self_reference CHECK (source_node_id != target_node_id)
 );
 
--- Create indexes for board_nodes tags (for filtering)
+-- Create indexes for board_lists
+CREATE INDEX idx_board_lists_board_id ON board_lists(board_id);
+CREATE INDEX idx_board_lists_order ON board_lists(board_id, "order");
+
+-- Create indexes for board_nodes
 CREATE INDEX idx_board_nodes_tags ON board_nodes USING GIN (tags);
 
--- Create indexes for board_edges (for relationship queries)
+-- Create indexes for board_edges
 CREATE INDEX idx_board_edges_source ON board_edges(source_node_id);
 CREATE INDEX idx_board_edges_target ON board_edges(target_node_id);
 CREATE INDEX idx_board_edges_source_target ON board_edges(source_node_id, target_node_id);
