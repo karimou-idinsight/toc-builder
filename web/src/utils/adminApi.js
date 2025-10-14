@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// Use relative URLs in production (same server), full URL in development if needed
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {

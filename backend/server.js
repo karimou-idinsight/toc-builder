@@ -23,7 +23,7 @@ import boardRoutes from './routes/boards.js';
 import adminRoutes from './routes/admin.js';
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
 
 // Middleware
 app.use(cors({
@@ -69,6 +69,36 @@ app.use('/api/users', userRoutes);
 app.use('/api/boards', boardRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Serve Next.js static files from dist folder
+const nextDistPath = path.join(__dirname, '..', 'web', 'out');
+
+// Serve static files (CSS, JS, images, etc.)
+app.use(express.static(nextDistPath));
+
+// Serve Next.js pages (for client-side routing)
+app.get('*', (req, res, next) => {
+  // Skip if it's an API route (already handled above)
+  if (req.path.startsWith('/api') || req.path === '/health') {
+    return next();
+  }
+  console.log({ nextDistPath});
+  console.log('Serving file:', req.path);
+  // Try to serve the specific file
+  const filePath = path.join(nextDistPath, req.path);
+  res.sendFile(filePath, (err) => {
+    console.log({ filePath, err});
+    if (err) {
+      // If file not found, serve index.html (for client-side routing)
+      res.sendFile(path.join(nextDistPath, 'index.html'), (err) => {
+        if (err) {
+          // If index.html also not found, pass to error handler
+          return next();
+        }
+      });
+    }
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
@@ -89,14 +119,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ 
     error: 'Internal server error',
     ...(process.env.NODE_ENV === 'development' && { details: err.message })
-  });
-});
-
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ 
-    error: 'Route not found',
-    path: req.originalUrl 
   });
 });
 
