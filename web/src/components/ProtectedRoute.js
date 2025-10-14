@@ -1,123 +1,45 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 
 export default function ProtectedRoute({ children, requireAuth = true, requireSuperAdmin = false }) {
-  const { user, loading, isSuperAdmin } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
-  const routerRef = useRef(router);
-  
-  // Keep router ref updated
-  useEffect(() => {
-    routerRef.current = router;
-  }, [router]);
-  
-  // Track if we've already initiated a redirect to prevent race conditions
-  // This ref persists across re-renders but resets on route changes
-  // Without this, the useEffect could fire multiple times during auth loading,
-  // causing unwanted redirects (e.g., redirecting from /board/1 to /boards)
-  const hasRedirected = useRef(false);
-  const currentPath = useRef(router.asPath);
-  
-  // Check if we have a token - if we do, we should wait for auth to complete
-  // rather than immediately redirecting
-  const [hasToken, setHasToken] = useState(false);
-  
-  useEffect(() => {
-    // Check for token on mount
-    const token = localStorage.getItem('accessToken');
-    setHasToken(!!token);
-  }, []);
-
-  // Reset redirect flag when the path actually changes
-  useEffect(() => {
-    if (currentPath.current !== router.asPath) {
-      hasRedirected.current = false;
-      currentPath.current = router.asPath;
-    }
-  }, [router.asPath]);
 
   useEffect(() => {
-    // Don't do anything while loading
-    if (loading) {
-      return;
-    }
-    
-    // If we have a token but no user yet, wait for the auth check to complete
-    // This prevents redirecting during the brief moment between token check and user load
-    if (hasToken && !user && requireAuth) {
-      console.log('[ProtectedRoute] Has token but no user yet - waiting for auth');
-      return;
-    }
-
-    // Prevent multiple redirects within the same page load
-    // If we've already initiated a redirect, don't do it again
-    if (hasRedirected.current) {
-      console.log('[ProtectedRoute] Skipping redirect - already redirected');
-      return;
-    }
+    // Only run redirect logic once loading is complete
+    if (loading) return;
 
     const userIsSuperAdmin = user?.role === 'super_admin';
-    const currentRouter = routerRef.current;
-    
-    console.log('[ProtectedRoute] Auth check:', { 
-      path: currentRouter.asPath, 
-      user: user?.email, 
-      requireAuth, 
-      requireSuperAdmin,
-      hasRedirected: hasRedirected.current,
-      hasToken,
-      userExists: !!user
-    });
 
-    // If authentication is required but user is not authenticated AND no token exists
-    if (requireAuth && !user && !hasToken) {
-      console.log('[ProtectedRoute] Redirecting to login - no user and no token');
-      hasRedirected.current = true;
-      // Store the current path to redirect back after login
-      sessionStorage.setItem('redirectAfterLogin', currentRouter.asPath);
-      currentRouter.replace('/login');
-      return;
-    }
-    
-    // If we had a token but auth failed (user is still null after loading completes)
-    if (requireAuth && !user && hasToken && !loading) {
-      console.log('[ProtectedRoute] Redirecting to login - token invalid');
-      hasRedirected.current = true;
-      setHasToken(false); // Clear the token flag
-      sessionStorage.setItem('redirectAfterLogin', currentRouter.asPath);
-      currentRouter.replace('/login');
+    // If authentication is required but user is not authenticated
+    if (requireAuth && !user) {
+      sessionStorage.setItem('redirectAfterLogin', router.asPath);
+      router.replace('/login');
       return;
     }
 
     // If super admin access is required but user is not super admin
-    if (requireSuperAdmin && !userIsSuperAdmin) {
-      console.log('[ProtectedRoute] Redirecting to / - not super admin');
-      hasRedirected.current = true;
-      currentRouter.replace('/');
+    if (requireSuperAdmin && user && !userIsSuperAdmin) {
+      router.replace('/boards');
       return;
     }
 
-    // If user is authenticated but trying to access auth pages
+    // If user is authenticated but trying to access auth pages (login/register)
     if (!requireAuth && user) {
-      console.log('[ProtectedRoute] Redirecting authenticated user from auth page');
-      hasRedirected.current = true;
       if (userIsSuperAdmin) {
-        currentRouter.replace('/admin');
+        router.replace('/admin');
       } else {
-        currentRouter.replace('/boards');
+        router.replace('/boards');
       }
       return;
     }
+  }, [user, loading, requireAuth, requireSuperAdmin, router]);
 
-    console.log('[ProtectedRoute] No redirect needed - showing content');
-      
-  }, [user, loading, requireAuth, requireSuperAdmin, hasToken]);
-
-  // Show loading state OR if we have a token but no user yet (auth in progress)
-  if (loading || (hasToken && !user && requireAuth)) {
+  // Show loading screen while auth is being checked
+  if (loading) {
     return (
       <div style={styles.loadingContainer}>
         <div style={styles.spinner}></div>
@@ -127,7 +49,7 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
   }
 
   // Show unauthorized if super admin required but user is not super admin
-  if (requireSuperAdmin && user && !isSuperAdmin()) {
+  if (requireSuperAdmin && user && user.role !== 'super_admin') {
     return (
       <div style={styles.errorContainer}>
         <h1 style={styles.errorTitle}>Unauthorized</h1>
@@ -142,8 +64,13 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
     );
   }
 
-  // Don't render children until auth check is complete
+  // Don't render children if auth is required but user is not authenticated
   if (requireAuth && !user) {
+    return null;
+  }
+
+  // Don't render auth pages if user is already authenticated
+  if (!requireAuth && user) {
     return null;
   }
 
