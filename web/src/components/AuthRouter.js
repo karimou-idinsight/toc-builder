@@ -22,6 +22,12 @@ export default function AuthRouter({ children }) {
     // Wait for auth to load
     if (loading) return;
     
+    // Wait for router to be ready (important for direct URL pastes)
+    if (!router.isReady) {
+      console.log('[AuthRouter] Router not ready yet, waiting...');
+      return;
+    }
+    
     // Only check once per page
     if (hasChecked.current) return;
     hasChecked.current = true;
@@ -29,7 +35,7 @@ export default function AuthRouter({ children }) {
     const path = router.pathname;
     const userIsSuperAdmin = user?.role === 'super_admin';
 
-    console.log('[AuthRouter] Checking path:', path, 'asPath:', router.asPath, 'User:', user?.email);
+    console.log('[AuthRouter] Checking path:', path, 'asPath:', router.asPath, 'User:', user?.email, 'isReady:', router.isReady);
 
     // Define route categories
     const publicRoutes = ['/'];
@@ -64,7 +70,7 @@ export default function AuthRouter({ children }) {
     }
 
     console.log('[AuthRouter] No redirect needed');
-  }, [user, loading, router.pathname, router.asPath, router]);
+  }, [user, loading, router.pathname, router.asPath, router.isReady, router]);
 
   // Show loading while auth is being checked
   if (loading) {
