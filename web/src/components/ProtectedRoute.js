@@ -1,56 +1,11 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 
 export default function ProtectedRoute({ children, requireAuth = true, requireSuperAdmin = false }) {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const redirecting = useRef(false);
-  const lastPath = useRef('');
-
-  // Reset redirecting flag when path changes
-  useEffect(() => {
-    if (lastPath.current !== router.asPath) {
-      redirecting.current = false;
-      lastPath.current = router.asPath;
-    }
-  }, [router.asPath]);
-
-  useEffect(() => {
-    // Only run redirect logic once loading is complete
-    if (loading || redirecting.current) return;
-
-    const userIsSuperAdmin = user?.role === 'super_admin';
-
-    // If authentication is required but user is not authenticated
-    if (requireAuth && !user) {
-      redirecting.current = true;
-      sessionStorage.setItem('redirectAfterLogin', router.asPath);
-      router.replace('/login');
-      return;
-    }
-
-    // If super admin access is required but user is not super admin
-    if (requireSuperAdmin && user && !userIsSuperAdmin) {
-      redirecting.current = true;
-      router.replace('/boards');
-      return;
-    }
-
-    // If user is authenticated but trying to access auth pages (login/register)
-    if (!requireAuth && user) {
-      redirecting.current = true;
-      if (userIsSuperAdmin) {
-        router.replace('/admin');
-      } else {
-        router.replace('/boards');
-      }
-      return;
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, loading, requireAuth, requireSuperAdmin]);
 
   // Show loading screen while auth is being checked
   if (loading) {
@@ -62,32 +17,39 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
     );
   }
 
-  // Show unauthorized if super admin required but user is not super admin
-  if (requireSuperAdmin && user && user.role !== 'super_admin') {
-    return (
-      <div style={styles.errorContainer}>
-        <h1 style={styles.errorTitle}>Unauthorized</h1>
-        <p style={styles.errorText}>You do not have permission to access this page.</p>
-        <button
-          onClick={() => router.push('/boards')}
-          style={styles.button}
-        >
-          Go to Boards
-        </button>
-      </div>
-    );
-  }
+  // After loading completes, handle auth requirements
+  const userIsSuperAdmin = user?.role === 'super_admin';
 
-  // Don't render children if auth is required but user is not authenticated
+  // Redirect: authentication required but user is not authenticated
   if (requireAuth && !user) {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('redirectAfterLogin', router.asPath);
+      router.replace('/login');
+    }
     return null;
   }
 
-  // Don't render auth pages if user is already authenticated
+  // Redirect: super admin access required but user is not super admin
+  if (requireSuperAdmin && user && !userIsSuperAdmin) {
+    if (typeof window !== 'undefined') {
+      router.replace('/boards');
+    }
+    return null;
+  }
+
+  // Redirect: user is authenticated but trying to access auth pages (login/register)
   if (!requireAuth && user) {
+    if (typeof window !== 'undefined') {
+      if (userIsSuperAdmin) {
+        router.replace('/admin');
+      } else {
+        router.replace('/boards');
+      }
+    }
     return null;
   }
 
+  // All checks passed - render the protected content
   return <>{children}</>;
 }
 
