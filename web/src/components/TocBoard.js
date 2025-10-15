@@ -13,6 +13,7 @@ import { createBoard, createNode, createList, createEdge, NODE_TYPES, EDGE_TYPES
 import { boardsApi } from '../utils/boardsApi';
 import { transformBoardData } from '../utils/boardTransformer';
 import { tocBoardStyles } from '../styles/TocBoard.styles';
+import { useLoading } from '../context/LoadingContext';
 import {
   initializeBoard,
   addList,
@@ -61,6 +62,7 @@ export default function TocBoard({ boardId = 'default' }) {
   const boardInnerRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { startLoading, stopLoading } = useLoading();
   
   // Get state from Redux
   const board = useSelector(selectBoard);
@@ -84,6 +86,7 @@ export default function TocBoard({ boardId = 'default' }) {
       try {
         setLoading(true);
         setError(null);
+        startLoading();
 
         if (!boardId || boardId === 'default') {
           // If no boardId provided, use dummy data for now
@@ -105,6 +108,7 @@ export default function TocBoard({ boardId = 'default' }) {
         setError(err.message || 'Failed to load board');
       } finally {
         setLoading(false);
+        stopLoading();
       }
     }
 

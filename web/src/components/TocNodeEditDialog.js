@@ -6,6 +6,7 @@ import { Dialog, DialogPanel, DialogTitle, TabGroup, TabList, Tab, TabPanels, Ta
 import { selectAllEdges } from '../store/selectors';
 import { updateNode } from '../store/boardSlice';
 import { useAuth } from '../context/AuthContext';
+import { useLoading } from '../context/LoadingContext';
 import TocNodeTagEditor from './TocNodeTagEditor';
 import Button from './ui/Button';
 import Input from './ui/Input';
@@ -28,6 +29,7 @@ export default function TocNodeEditDialog({
   const edges = useSelector(selectAllEdges);
   const dispatch = useDispatch();
   const { user: currentUser } = useAuth();
+  const { startLoading, stopLoading } = useLoading();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -113,6 +115,7 @@ export default function TocNodeEditDialog({
     if (!newComment.trim() || !node || !board) return;
     
     setSubmittingComment(true);
+    startLoading();
     try {
       const data = await boardsApi.createNodeComment(board.id, node.id, newComment);
       const updatedComments = [...comments, data.comment];
@@ -133,6 +136,7 @@ export default function TocNodeEditDialog({
       alert('Failed to add comment. Please try again.');
     } finally {
       setSubmittingComment(false);
+      stopLoading();
     }
   };
 
