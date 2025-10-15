@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { Dialog } from '@headlessui/react';
 import { selectAllEdges } from '../store/selectors';
 import TocNodeTagEditor from './TocNodeTagEditor';
+import { styles, getInputStyle, getAddButtonStyle, getSaveButtonStyle, getCancelButtonStyle } from '../styles/TocNodeEditDialog.styles';
 
 export default function TocNodeEditDialog({
   isOpen,
@@ -212,233 +213,46 @@ export default function TocNodeEditDialog({
 
   if (!node) return null;
 
-  const dialogStyles = {
-    overlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000
-    },
-    dialog: {
-      backgroundColor: 'white',
-      borderRadius: '0.5rem',
-      padding: '1.5rem',
-      maxWidth: '600px',
-      width: '90%',
-      maxHeight: '90vh',
-      overflow: 'auto',
-      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
-    },
-    title: {
-      fontSize: '1.25rem',
-      fontWeight: '600',
-      marginBottom: '1rem',
-      color: '#1f2937'
-    },
-    section: {
-      marginBottom: '1.5rem'
-    },
-    label: {
-      display: 'block',
-      fontSize: '0.875rem',
-      fontWeight: '500',
-      marginBottom: '0.5rem',
-      color: '#374151'
-    },
-    input: {
-      width: '100%',
-      padding: '0.5rem',
-      border: '1px solid #d1d5db',
-      borderRadius: '0.25rem',
-      fontSize: '0.875rem',
-      outline: 'none',
-      transition: 'border-color 0.2s',
-      boxSizing: 'border-box'
-    },
-    inputFocus: {
-      borderColor: '#3b82f6',
-      boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)'
-    },
-    textarea: {
-      width: '100%',
-      padding: '0.5rem',
-      border: '1px solid #d1d5db',
-      borderRadius: '0.25rem',
-      fontSize: '0.875rem',
-      outline: 'none',
-      transition: 'border-color 0.2s',
-      resize: 'vertical',
-      minHeight: '80px',
-      boxSizing: 'border-box'
-    },
-    multiSelectContainer: {
-      position: 'relative',
-      width: '100%'
-    },
-    selectedItems: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '0.5rem',
-      marginBottom: '0.5rem'
-    },
-    selectedItem: {
-      backgroundColor: '#eff6ff',
-      color: '#1d4ed8',
-      padding: '0.25rem 0.5rem',
-      borderRadius: '0.25rem',
-      fontSize: '0.75rem',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.25rem'
-    },
-    removeButton: {
-      background: 'none',
-      border: 'none',
-      color: '#1d4ed8',
-      cursor: 'pointer',
-      fontSize: '0.875rem',
-      padding: '0',
-      lineHeight: '1'
-    },
-    dropdown: {
-      position: 'absolute',
-      top: '100%',
-      left: 0,
-      right: 0,
-      backgroundColor: 'white',
-      border: '1px solid #d1d5db',
-      borderRadius: '0.25rem',
-      maxHeight: '200px',
-      overflow: 'auto',
-      zIndex: 10,
-      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-    },
-    dropdownItem: {
-      padding: '0.5rem',
-      cursor: 'pointer',
-      fontSize: '0.875rem',
-      borderBottom: '1px solid #f3f4f6'
-    },
-    dropdownItemHover: {
-      backgroundColor: '#f3f4f6'
-    },
-    tagContainer: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '0.5rem',
-      marginBottom: '0.5rem'
-    },
-    tag: {
-      backgroundColor: '#f3f4f6',
-      color: '#374151',
-      padding: '0.25rem 0.5rem',
-      borderRadius: '0.25rem',
-      fontSize: '0.75rem',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.25rem'
-    },
-    tagInput: {
-      display: 'flex',
-      gap: '0.5rem',
-      alignItems: 'center'
-    },
-    addButton: {
-      backgroundColor: '#3b82f6',
-      color: 'white',
-      border: 'none',
-      padding: '0.5rem 1rem',
-      borderRadius: '0.25rem',
-      cursor: 'pointer',
-      fontSize: '0.75rem',
-      whiteSpace: 'nowrap',
-      transition: 'all 0.2s'
-    },
-    addButtonDisabled: {
-      backgroundColor: '#d1d5db',
-      color: '#9ca3af',
-      cursor: 'not-allowed'
-    },
-    actions: {
-      display: 'flex',
-      gap: '0.75rem',
-      justifyContent: 'flex-end',
-      marginTop: '2rem'
-    },
-    button: {
-      padding: '0.5rem 1rem',
-      borderRadius: '0.25rem',
-      fontSize: '0.875rem',
-      fontWeight: '500',
-      cursor: 'pointer',
-      border: 'none',
-      transition: 'all 0.2s'
-    },
-    saveButtonDisabled: {
-      backgroundColor: '#d1d5db',
-      color: '#9ca3af',
-      cursor: 'not-allowed'
-    },
-    cancelButton: {
-      backgroundColor: '#f3f4f6',
-      color: '#374151'
-    },
-    saveButton: {
-      backgroundColor: '#3b82f6',
-      color: 'white'
-    },
-    saveButtonDisabled: {
-      backgroundColor: '#d1d5db',
-      color: '#9ca3af',
-      cursor: 'not-allowed'
-    }
-  };
 
   return (
     <Dialog open={isOpen} onClose={onClose}>
-      <div style={dialogStyles.overlay}>
-        <Dialog.Panel style={dialogStyles.dialog}>
-          <Dialog.Title style={dialogStyles.title}>Edit Node</Dialog.Title>
+      <div style={styles.overlay}>
+        <Dialog.Panel style={styles.dialog}>
+          <Dialog.Title style={styles.title}>Edit Node</Dialog.Title>
           
           {/* Node Name */}
-          <div style={dialogStyles.section}>
-            <label style={dialogStyles.label}>Name</label>
+          <div style={styles.section}>
+            <label style={styles.label}>Name</label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
-              style={dialogStyles.input}
+              style={styles.input}
               placeholder="Enter node name"
             />
           </div>
 
           {/* Description */}
-          <div style={dialogStyles.section}>
-            <label style={dialogStyles.label}>Description</label>
+          <div style={styles.section}>
+            <label style={styles.label}>Description</label>
             <textarea
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              style={dialogStyles.textarea}
+              style={styles.textarea}
               placeholder="Enter node description"
             />
           </div>
 
           {/* Upstream Nodes */}
-          <div style={dialogStyles.section}>
-            <label style={dialogStyles.label}>Upstream Nodes</label>
-            <div style={dialogStyles.multiSelectContainer} ref={upstreamRef}>
-              <div style={dialogStyles.selectedItems}>
+          <div style={styles.section}>
+            <label style={styles.label}>Upstream Nodes</label>
+            <div style={styles.multiSelectContainer} ref={upstreamRef}>
+              <div style={styles.selectedItems}>
                 {upstreamNodes.map(node => (
-                  <div key={node.id} style={dialogStyles.selectedItem}>
+                  <div key={node.id} style={styles.selectedItem}>
                     {node.title}
                     <button
-                      style={dialogStyles.removeButton}
+                      style={styles.removeButton}
                       onClick={() => handleRemoveUpstreamNode(node)}
                     >
                       ×
@@ -454,22 +268,22 @@ export default function TocNodeEditDialog({
                   setShowUpstreamDropdown(true);
                 }}
                 onFocus={() => setShowUpstreamDropdown(true)}
-                style={dialogStyles.input}
+                style={styles.input}
                 placeholder="Search and select upstream nodes..."
               />
               {showUpstreamDropdown && (
-                <div style={dialogStyles.dropdown}>
+                <div style={styles.dropdown}>
                   {getAvailableUpstreamNodes().length === 0 ? (
-                    <div style={dialogStyles.dropdownItem}>
+                    <div style={styles.dropdownItem}>
                       {upstreamSearch ? 'No matching nodes found' : 'No available nodes'}
                     </div>
                   ) : (
                     getAvailableUpstreamNodes().map(availableNode => (
                       <div
                         key={availableNode.id}
-                        style={dialogStyles.dropdownItem}
+                        style={styles.dropdownItem}
                         onClick={() => handleAddUpstreamNode(availableNode)}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = dialogStyles.dropdownItemHover.backgroundColor}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = styles.dropdownItemHover.backgroundColor}
                         onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
                       >
                         {availableNode.title}
@@ -482,15 +296,15 @@ export default function TocNodeEditDialog({
           </div>
 
           {/* Downstream Nodes */}
-          <div style={dialogStyles.section}>
-            <label style={dialogStyles.label}>Downstream Nodes</label>
-            <div style={dialogStyles.multiSelectContainer} ref={downstreamRef}>
-              <div style={dialogStyles.selectedItems}>
+          <div style={styles.section}>
+            <label style={styles.label}>Downstream Nodes</label>
+            <div style={styles.multiSelectContainer} ref={downstreamRef}>
+              <div style={styles.selectedItems}>
                 {downstreamNodes.map(node => (
-                  <div key={node.id} style={dialogStyles.selectedItem}>
+                  <div key={node.id} style={styles.selectedItem}>
                     {node.title}
                     <button
-                      style={dialogStyles.removeButton}
+                      style={styles.removeButton}
                       onClick={() => handleRemoveDownstreamNode(node)}
                     >
                       ×
@@ -506,22 +320,22 @@ export default function TocNodeEditDialog({
                   setShowDownstreamDropdown(true);
                 }}
                 onFocus={() => setShowDownstreamDropdown(true)}
-                style={dialogStyles.input}
+                style={styles.input}
                 placeholder="Search and select downstream nodes..."
               />
               {showDownstreamDropdown && (
-                <div style={dialogStyles.dropdown}>
+                <div style={styles.dropdown}>
                   {getAvailableDownstreamNodes().length === 0 ? (
-                    <div style={dialogStyles.dropdownItem}>
+                    <div style={styles.dropdownItem}>
                       {downstreamSearch ? 'No matching nodes found' : 'No available nodes'}
                     </div>
                   ) : (
                     getAvailableDownstreamNodes().map(availableNode => (
                       <div
                         key={availableNode.id}
-                        style={dialogStyles.dropdownItem}
+                        style={styles.dropdownItem}
                         onClick={() => handleAddDownstreamNode(availableNode)}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = dialogStyles.dropdownItemHover.backgroundColor}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = styles.dropdownItemHover.backgroundColor}
                         onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
                       >
                         {availableNode.title}
@@ -534,8 +348,8 @@ export default function TocNodeEditDialog({
           </div>
 
           {/* Tags */}
-          <div style={dialogStyles.section}>
-            <label style={dialogStyles.label}>Tags</label>
+          <div style={styles.section}>
+            <label style={styles.label}>Tags</label>
             <TocNodeTagEditor
               tags={formData.tags}
               allTags={allTags}
@@ -544,17 +358,17 @@ export default function TocNodeEditDialog({
           </div>
 
           {/* Actions */}
-          <div style={dialogStyles.actions}>
+          <div style={styles.actions}>
             <button
-              style={{...dialogStyles.button, ...dialogStyles.cancelButton}}
+              style={{...styles.button, ...styles.cancelButton}}
               onClick={onClose}
             >
               Cancel
             </button>
             <button
               style={{
-                ...dialogStyles.button, 
-                ...(formData.title.trim() ? dialogStyles.saveButton : dialogStyles.saveButtonDisabled)
+                ...styles.button, 
+                ...(formData.title.trim() ? styles.saveButton : styles.saveButtonDisabled)
               }}
               onClick={handleSave}
               disabled={!formData.title.trim()}

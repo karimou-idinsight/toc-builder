@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { styles, getCreateNewTagOptionStyle, getExistingTagOptionStyle } from '../styles/TocNodeTagEditor.styles';
 
 export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -60,21 +61,10 @@ export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange
   };
 
   return (
-    <div ref={dropdownRef} style={{ position: 'relative', width: '100%' }}>
+    <div ref={dropdownRef} style={styles.container}>
       {/* Input container with selected tags */}
       <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '4px',
-          alignItems: 'center',
-          padding: '6px 8px',
-          backgroundColor: 'white',
-          border: '1px solid #d1d5db',
-          borderRadius: '6px',
-          minHeight: '38px',
-          cursor: 'text',
-        }}
+        style={styles.inputContainer}
         onClick={() => {
           setIsOpen(true);
           inputRef.current?.focus();
@@ -84,17 +74,7 @@ export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange
         {tags.map(tag => (
           <span
             key={tag}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '2px 8px',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              borderRadius: '4px',
-              fontSize: '12px',
-              fontWeight: '500',
-            }}
+            style={styles.selectedTag}
           >
             {tag}
             <button
@@ -102,16 +82,7 @@ export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange
                 e.stopPropagation();
                 handleRemoveTag(tag);
               }}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'white',
-                cursor: 'pointer',
-                padding: '0',
-                fontSize: '14px',
-                lineHeight: '1',
-                fontWeight: 'bold',
-              }}
+              style={styles.removeTagButton}
             >
               ×
             </button>
@@ -127,79 +98,34 @@ export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={tags.length === 0 ? "Add tags..." : ""}
-          style={{
-            flex: 1,
-            minWidth: '100px',
-            border: 'none',
-            outline: 'none',
-            fontSize: '14px',
-            backgroundColor: 'transparent',
-          }}
+          style={styles.input}
         />
       </div>
 
       {/* Dropdown */}
       {isOpen && (searchTerm || filteredTags.length > 0 || isNewTag) && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            marginTop: '4px',
-            backgroundColor: 'white',
-            border: '1px solid #d1d5db',
-            borderRadius: '6px',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-            zIndex: 1000,
-            maxHeight: '250px',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <div style={{ overflowY: 'auto', maxHeight: '250px' }}>
+        <div style={styles.dropdown}>
+          <div style={styles.dropdownContent}>
             {/* Create new tag option */}
             {isNewTag && (
               <div
                 onClick={() => handleAddTag(searchTerm.trim())}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '10px 12px',
-                  cursor: 'pointer',
-                  backgroundColor: '#f0f9ff',
-                  borderBottom: '1px solid #e0f2fe',
-                }}
+                style={styles.createNewTagOption}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#e0f2fe';
+                  e.target.style.backgroundColor = styles.createNewTagOptionHover.backgroundColor;
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = '#f0f9ff';
+                  e.target.style.backgroundColor = styles.createNewTagOption.backgroundColor;
                 }}
               >
-                <div
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    marginRight: '8px',
-                    backgroundColor: '#3b82f6',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                  }}
-                >
+                <div style={styles.createNewTagIcon}>
                   +
                 </div>
                 <div>
-                  <div style={{ fontSize: '14px', fontWeight: '500', color: '#1e40af' }}>
+                  <div style={styles.createNewTagText}>
                     Create "{searchTerm.trim()}"
                   </div>
-                  <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                  <div style={styles.createNewTagSubtext}>
                     Press Enter or click to create new tag
                   </div>
                 </div>
@@ -210,15 +136,7 @@ export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange
             {filteredTags.length > 0 && (
               <>
                 {isNewTag && (
-                  <div style={{ 
-                    padding: '6px 12px', 
-                    fontSize: '11px', 
-                    fontWeight: '600', 
-                    color: '#6b7280',
-                    textTransform: 'uppercase',
-                    backgroundColor: '#f9fafb',
-                    borderBottom: '1px solid #f3f4f6'
-                  }}>
+                  <div style={styles.existingTagsSection}>
                     Existing Tags
                   </div>
                 )}
@@ -226,31 +144,16 @@ export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange
                   <div
                     key={tag}
                     onClick={() => handleAddTag(tag)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '8px 12px',
-                      cursor: 'pointer',
-                      backgroundColor: 'white',
-                      borderBottom: '1px solid #f3f4f6',
-                    }}
+                    style={styles.existingTagOption}
                     onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = '#f9fafb';
+                      e.target.style.backgroundColor = styles.existingTagOptionHover.backgroundColor;
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = 'white';
+                      e.target.style.backgroundColor = styles.existingTagOption.backgroundColor;
                     }}
                   >
-                    <div
-                      style={{
-                        width: '6px',
-                        height: '6px',
-                        marginRight: '10px',
-                        backgroundColor: '#3b82f6',
-                        borderRadius: '50%',
-                      }}
-                    />
-                    <span style={{ fontSize: '14px', color: '#374151' }}>{tag}</span>
+                    <div style={styles.existingTagIndicator} />
+                    <span style={styles.existingTagText}>{tag}</span>
                   </div>
                 ))}
               </>
@@ -258,7 +161,7 @@ export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange
 
             {/* No results */}
             {!isNewTag && filteredTags.length === 0 && searchTerm && (
-              <div style={{ padding: '12px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>
+              <div style={styles.noResults}>
                 No matching tags found
               </div>
             )}
