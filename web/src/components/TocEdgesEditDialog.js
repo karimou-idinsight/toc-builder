@@ -246,19 +246,65 @@ export default function TocEdgesEditDialog({
                           {(!comments || comments.length === 0) ? (
                             <div className="text-xs text-gray-500">No comments yet.</div>
                           ) : (
-                            comments.map((c) => (
-                              <div key={c.id} className="p-2 bg-white rounded-md border border-gray-200 mb-2">
-                                <div className="flex justify-between mb-1">
-                                  <div className="text-xs text-gray-700 font-semibold">
-                                    {(c.user?.first_name || 'User') + (c.user?.last_name ? ` ${c.user.last_name}` : '')}
+                            comments.map((c) => {
+                              const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+                              const canToggleStatus = c.user_id === currentUser.id;
+                              
+                              return (
+                                <div 
+                                  key={c.id} 
+                                  className={`p-2 rounded-md border mb-2 ${
+                                    c.status === 'solved' 
+                                      ? 'bg-green-50 border-green-200' 
+                                      : 'bg-white border-gray-200'
+                                  }`}
+                                >
+                                  <div className="flex justify-between mb-1">
+                                    <div className="flex items-center gap-2">
+                                      <div className="text-xs text-gray-700 font-semibold">
+                                        {(c.user?.first_name || 'User') + (c.user?.last_name ? ` ${c.user.last_name}` : '')}
+                                      </div>
+                                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                        c.status === 'solved' 
+                                          ? 'bg-green-200 text-green-800' 
+                                          : 'bg-blue-200 text-blue-800'
+                                      }`}>
+                                        {c.status === 'solved' ? '✓ Solved' : 'Open'}
+                                      </span>
+                                    </div>
+                                    <div className="text-xs text-gray-400">
+                                      {new Date(c.created_at || c.createdAt).toLocaleString()}
+                                    </div>
                                   </div>
-                                  <div className="text-xs text-gray-400">
-                                    {new Date(c.created_at || c.createdAt).toLocaleString()}
-                                  </div>
+                                  <div className="text-sm text-gray-700 whitespace-pre-wrap mb-1">{c.content}</div>
+                                  {canToggleStatus && (
+                                    <button
+                                      onClick={async () => {
+                                        try {
+                                          const newStatus = c.status === 'solved' ? 'open' : 'solved';
+                                          const { boardsApi } = await import('../utils/boardsApi');
+                                          const { comment: updatedComment } = await boardsApi.updateEdgeComment(
+                                            boardId, 
+                                            edgeId, 
+                                            c.id, 
+                                            { status: newStatus }
+                                          );
+                                          setComments(prev => prev.map(comment => 
+                                            comment.id === c.id ? updatedComment : comment
+                                          ));
+                                        } catch (error) {
+                                          console.error('Error updating comment status:', error);
+                                          setCommentError('Failed to update comment status');
+                                        }
+                                      }}
+                                      className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                                    >
+                                      {c.status === 'solved' ? 'Reopen' : 'Mark as Solved'}
+                                    </button>
+                                  )}
                                 </div>
-                                <div className="text-sm text-gray-700 whitespace-pre-wrap">{c.content}</div>
-                              </div>
-                            ))
+                              );
+                            })
                           )}
                         </div>
                       )}

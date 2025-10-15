@@ -523,11 +523,7 @@ router.post('/:boardId/nodes/:nodeId/comments', authenticateToken, requireBoardC
 router.put('/:boardId/nodes/:nodeId/comments/:commentId', authenticateToken, requireBoardContributor, async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { content } = req.body;
-    
-    if (!content || content.trim().length === 0) {
-      return res.status(400).json({ error: 'Comment content is required' });
-    }
+    const { content, status } = req.body;
     
     const comment = await BoardNodeComment.findById(commentId);
     if (!comment) {
@@ -539,7 +535,29 @@ router.put('/:boardId/nodes/:nodeId/comments/:commentId', authenticateToken, req
       return res.status(403).json({ error: 'Not authorized to update this comment' });
     }
     
-    const updatedComment = await BoardNodeComment.update(commentId, { content: content.trim() });
+    const updateData = {};
+    
+    // Update content if provided
+    if (content !== undefined) {
+      if (content.trim().length === 0) {
+        return res.status(400).json({ error: 'Comment content cannot be empty' });
+      }
+      updateData.content = content.trim();
+    }
+    
+    // Update status if provided
+    if (status !== undefined) {
+      if (!['open', 'solved'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status. Must be "open" or "solved"' });
+      }
+      updateData.status = status;
+    }
+    
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'No update data provided' });
+    }
+    
+    const updatedComment = await BoardNodeComment.update(commentId, updateData);
     const commentWithUser = await BoardNodeComment.findById(updatedComment.id);
     
     res.json({
@@ -638,11 +656,7 @@ router.post('/:boardId/edges/:edgeId/comments', authenticateToken, requireBoardC
 router.put('/:boardId/edges/:edgeId/comments/:commentId', authenticateToken, requireBoardContributor, async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { content } = req.body;
-    
-    if (!content || content.trim().length === 0) {
-      return res.status(400).json({ error: 'Comment content is required' });
-    }
+    const { content, status } = req.body;
     
     const comment = await BoardEdgeComment.findById(commentId);
     if (!comment) {
@@ -654,7 +668,29 @@ router.put('/:boardId/edges/:edgeId/comments/:commentId', authenticateToken, req
       return res.status(403).json({ error: 'Not authorized to update this comment' });
     }
     
-    const updatedComment = await BoardEdgeComment.update(commentId, { content: content.trim() });
+    const updateData = {};
+    
+    // Update content if provided
+    if (content !== undefined) {
+      if (content.trim().length === 0) {
+        return res.status(400).json({ error: 'Comment content cannot be empty' });
+      }
+      updateData.content = content.trim();
+    }
+    
+    // Update status if provided
+    if (status !== undefined) {
+      if (!['open', 'solved'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status. Must be "open" or "solved"' });
+      }
+      updateData.status = status;
+    }
+    
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'No update data provided' });
+    }
+    
+    const updatedComment = await BoardEdgeComment.update(commentId, updateData);
     const commentWithUser = await BoardEdgeComment.findById(updatedComment.id);
     
     res.json({

@@ -431,19 +431,60 @@ export default function TocNodeEditDialog({
                     ) : comments.length === 0 ? (
                       <div className="text-center text-gray-500 py-4">No comments yet</div>
                     ) : (
-                      comments.map((comment) => (
-                        <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
-                          <div className="flex items-start justify-between mb-2">
-                            <span className="font-medium text-sm text-gray-700">
-                              {comment.user_email || 'Unknown User'}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {new Date(comment.created_at).toLocaleString()}
-                            </span>
+                      comments.map((comment) => {
+                        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+                        const canToggleStatus = comment.user_id === currentUser.id || board.owner_id === currentUser.id;
+                        
+                        return (
+                          <div 
+                            key={comment.id} 
+                            className={`rounded-lg p-3 ${comment.status === 'solved' ? 'bg-green-50 border border-green-200' : 'bg-gray-50'}`}
+                          >
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-sm text-gray-700">
+                                  {comment.user_email || 'Unknown User'}
+                                </span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                  comment.status === 'solved' 
+                                    ? 'bg-green-200 text-green-800' 
+                                    : 'bg-blue-200 text-blue-800'
+                                }`}>
+                                  {comment.status === 'solved' ? '✓ Solved' : 'Open'}
+                                </span>
+                              </div>
+                              <span className="text-xs text-gray-500">
+                                {new Date(comment.created_at).toLocaleString()}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-800 whitespace-pre-wrap mb-2">{comment.content}</p>
+                            {canToggleStatus && (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const newStatus = comment.status === 'solved' ? 'open' : 'solved';
+                                    const { comment: updatedComment } = await boardsApi.updateNodeComment(
+                                      board.id, 
+                                      node.id, 
+                                      comment.id, 
+                                      { status: newStatus }
+                                    );
+                                    setComments(prev => prev.map(c => 
+                                      c.id === comment.id ? updatedComment : c
+                                    ));
+                                  } catch (error) {
+                                    console.error('Error updating comment status:', error);
+                                    alert('Failed to update comment status');
+                                  }
+                                }}
+                                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                              >
+                                {comment.status === 'solved' ? 'Reopen' : 'Mark as Solved'}
+                              </button>
+                            )}
                           </div>
-                          <p className="text-sm text-gray-800 whitespace-pre-wrap">{comment.content}</p>
-                        </div>
-                      ))
+                        );
+                      })
                     )}
                   </div>
 

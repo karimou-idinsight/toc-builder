@@ -187,6 +187,15 @@ export const boardsApi = {
     return handleResponse(response);
   },
 
+  async updateNodeComment(boardId, nodeId, commentId, updates) {
+    const response = await fetch(`${API_URL}/api/boards/${boardId}/nodes/${nodeId}/comments/${commentId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(updates)
+    });
+    return handleResponse(response);
+  },
+
   // Edge comments
   async getEdgeComments(boardId, edgeId) {
     const response = await fetch(`${API_URL}/api/boards/${boardId}/edges/${edgeId}/comments`, {
@@ -201,6 +210,15 @@ export const boardsApi = {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ content })
+    });
+    return handleResponse(response);
+  },
+
+  async updateEdgeComment(boardId, edgeId, commentId, updates) {
+    const response = await fetch(`${API_URL}/api/boards/${boardId}/edges/${edgeId}/comments/${commentId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(updates)
     });
     return handleResponse(response);
   }
