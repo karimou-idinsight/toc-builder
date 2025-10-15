@@ -270,6 +270,7 @@ function TocEdgesInternal({ boardId, edges, onUpdateEdge, onDeleteEdge }) {
           color: getEdgeColor(edge.type),
           commentCount: edge.commentCount || 0,
           comments: edge.comments || [],
+          assumptions: edge.assumptions || [],
           onUpdate: onUpdateEdge,
           onDelete: onDeleteEdge,
           onEdit: setEditingEdge,

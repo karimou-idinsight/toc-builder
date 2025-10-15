@@ -221,6 +221,41 @@ export const boardsApi = {
       body: JSON.stringify(updates)
     });
     return handleResponse(response);
+  },
+
+  // Edge assumptions
+  async getEdgeAssumptions(boardId, edgeId) {
+    const response = await fetch(`${API_URL}/api/boards/${boardId}/edges/${edgeId}/assumptions`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
+
+  async createEdgeAssumption(boardId, edgeId, content, strength = 'medium') {
+    const response = await fetch(`${API_URL}/api/boards/${boardId}/edges/${edgeId}/assumptions`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ content, strength })
+    });
+    return handleResponse(response);
+  },
+
+  async updateEdgeAssumption(boardId, edgeId, assumptionId, updates) {
+    const response = await fetch(`${API_URL}/api/boards/${boardId}/edges/${edgeId}/assumptions/${assumptionId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(updates)
+    });
+    return handleResponse(response);
+  },
+
+  async deleteEdgeAssumption(boardId, edgeId, assumptionId) {
+    const response = await fetch(`${API_URL}/api/boards/${boardId}/edges/${edgeId}/assumptions/${assumptionId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
   }
 };
 

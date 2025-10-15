@@ -28,7 +28,7 @@ export function transformBoardData(backendData) {
   }
 
   // Backend returns board data with lists/nodes/edges merged in, not separated
-  const { lists, nodes, edges, nodeComments, edgeComments, ...boardFields } = backendData;
+  const { lists, nodes, edges, nodeComments, edgeComments, edgeAssumptions, ...boardFields } = backendData;
   const board = boardFields;
 
   // Validate required fields
@@ -122,6 +122,15 @@ export function transformBoardData(backendData) {
     edgeCommentsMap.get(comment.edge_id).push(comment);
   });
 
+  // Create a map of edge assumptions by edge ID for quick lookup
+  const edgeAssumptionsMap = new Map();
+  (edgeAssumptions || []).forEach(assumption => {
+    if (!edgeAssumptionsMap.has(assumption.edge_id)) {
+      edgeAssumptionsMap.set(assumption.edge_id, []);
+    }
+    edgeAssumptionsMap.get(assumption.edge_id).push(assumption);
+  });
+
   // Transform edges to frontend format
   const transformedEdges = edges.map(edge => ({
     id: String(edge.id),
@@ -133,7 +142,8 @@ export function transformBoardData(backendData) {
     animated: false,
     createdAt: edge.created_at,
     comments: edgeCommentsMap.get(edge.id) || [],
-    commentCount: (edgeCommentsMap.get(edge.id) || []).filter(c => c.status !== 'solved').length
+    commentCount: (edgeCommentsMap.get(edge.id) || []).filter(c => c.status !== 'solved').length,
+    assumptions: edgeAssumptionsMap.get(edge.id) || []
   }));
 
   // Return transformed board

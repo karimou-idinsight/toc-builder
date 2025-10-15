@@ -274,6 +274,7 @@ class Board {
     const { default: BoardEdge } = await import('./BoardEdge.js');
     const { default: BoardNodeComment } = await import('./BoardNodeComment.js');
     const { default: BoardEdgeComment } = await import('./BoardEdgeComment.js');
+    const { default: BoardEdgeAssumption } = await import('./BoardEdgeAssumption.js');
 
     // Get all lists for this board
     const lists = await BoardList.findByIds(this.list_ids);
@@ -296,13 +297,17 @@ class Board {
     const edgeIds = edges.map(e => e.id);
     const edgeComments = await BoardEdgeComment.findByEdgeIds(edgeIds);
     
+    // Get all assumptions for edges
+    const edgeAssumptions = await BoardEdgeAssumption.findByEdgeIds(edgeIds);
+    
     return {
       ...this.toJSON(),
       lists: lists.map(l => l.toJSON()),
       nodes: nodes.map(n => n.toJSON()),
       edges: edges.map(e => e.toJSON()),
       nodeComments: nodeComments.map(c => c.toJSON()),
-      edgeComments: edgeComments.map(c => c.toJSON())
+      edgeComments: edgeComments.map(c => c.toJSON()),
+      edgeAssumptions: edgeAssumptions.map(a => a.toJSON())
     };
   }
 

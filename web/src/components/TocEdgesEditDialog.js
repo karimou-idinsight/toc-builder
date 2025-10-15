@@ -30,6 +30,11 @@ export default function TocEdgesEditDialog({
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [commentError, setCommentError] = useState(null);
+  const [assumptions, setAssumptions] = useState([]);
+  const [assumptionsLoading, setAssumptionsLoading] = useState(false);
+  const [newAssumption, setNewAssumption] = useState('');
+  const [newAssumptionStrength, setNewAssumptionStrength] = useState('medium');
+  const [assumptionError, setAssumptionError] = useState(null);
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
 
   useEffect(() => {
@@ -53,6 +58,24 @@ export default function TocEdgesEditDialog({
       }
     }
     loadComments();
+  }, [isOpen, boardId, edgeId]);
+
+  // Load edge assumptions when dialog opens
+  useEffect(() => {
+    async function loadAssumptions() {
+      if (!isOpen || !boardId || !edgeId) return;
+      try {
+        setAssumptionsLoading(true);
+        setAssumptionError(null);
+        const { assumptions } = await (await import('../utils/boardsApi')).boardsApi.getEdgeAssumptions(boardId, edgeId);
+        setAssumptions(assumptions || []);
+      } catch (err) {
+        setAssumptionError(err.message || 'Failed to load assumptions');
+      } finally {
+        setAssumptionsLoading(false);
+      }
+    }
+    loadAssumptions();
   }, [isOpen, boardId, edgeId]);
 
   const handleSave = () => {
@@ -102,6 +125,29 @@ export default function TocEdgesEditDialog({
     }
   };
 
+  const handleAddAssumption = async () => {
+    const content = newAssumption.trim();
+    if (!content) return;
+    try {
+      setAssumptionError(null);
+      const { assumption } = await (await import('../utils/boardsApi')).boardsApi.createEdgeAssumption(boardId, edgeId, content, newAssumptionStrength);
+      const updatedAssumptions = [...assumptions, assumption];
+      setAssumptions(updatedAssumptions);
+      setNewAssumption('');
+      setNewAssumptionStrength('medium');
+      
+      // Update Redux state
+      dispatch(updateEdge({
+        edgeId: edgeId,
+        updates: {
+          assumptions: updatedAssumptions
+        }
+      }));
+    } catch (err) {
+      setAssumptionError(err.message || 'Failed to add assumption');
+    }
+  };
+
   const edgeTypes = [
     { value: 'LEADS_TO', label: 'Leads to', color: '#374151', style: 'solid' },
     { value: 'ENABLES', label: 'Enables', color: '#10b981', style: 'dashed' },
@@ -134,6 +180,13 @@ export default function TocEdgesEditDialog({
                           }`}
                         >
                           Comments {comments.filter(c => c.status !== 'solved').length > 0 && `(${comments.filter(c => c.status !== 'solved').length})`}
+                        </Tab>
+                        <Tab
+                          className={({ selected }) => `px-3 py-2 font-semibold cursor-pointer border-b-2 focus:outline-none ${
+                            selected ? 'border-b-blue-500 text-gray-900' : 'border-b-transparent text-gray-500'
+                          }`}
+                        >
+                          Assumptions {assumptions.length > 0 && `(${assumptions.length})`}
                         </Tab>
                       </TabList>
 
@@ -354,6 +407,117 @@ export default function TocEdgesEditDialog({
                         >
                           Add
                         </Button>
+                      </div>
+                    </div>
+                  </TabPanel>
+
+                  {/* Assumptions Tab */}
+                  <TabPanel>
+                    <div className="space-y-3">
+                      {/* Assumptions List */}
+                      <div className="space-y-2">
+                        <div className="text-sm font-semibold text-gray-700 mb-2">
+                          Assumptions ({assumptions.length})
+                        </div>
+                        
+                        {assumptionError && (
+                          <div className="text-xs text-red-600 mb-2">{assumptionError}</div>
+                        )}
+                        
+                        {assumptionsLoading ? (
+                          <div className="text-xs text-gray-500 p-2">Loading assumptions...</div>
+                        ) : (
+                          <div className="border border-gray-200 rounded-md p-2 bg-gray-50">
+                            {(!assumptions || assumptions.length === 0) ? (
+                              <div className="text-xs text-gray-500">No assumptions yet.</div>
+                            ) : (
+                              assumptions.map((assumption) => {
+                                const canEdit = assumption.user_id === currentUser?.id || boardId; // Can be refined with board owner check
+                                
+                                // Strength badge colors
+                                const strengthColors = {
+                                  'weak': 'bg-red-100 text-red-800',
+                                  'medium': 'bg-yellow-100 text-yellow-800',
+                                  'strong': 'bg-green-100 text-green-800',
+                                  'evidence-backed': 'bg-blue-100 text-blue-800'
+                                };
+                                
+                                const strengthLabels = {
+                                  'weak': 'Weak',
+                                  'medium': 'Medium',
+                                  'strong': 'Strong',
+                                  'evidence-backed': 'Evidence-backed'
+                                };
+                                
+                                return (
+                                  <div 
+                                    key={assumption.id} 
+                                    className="p-2 rounded-md border border-gray-300 mb-2 last:mb-0 bg-white"
+                                  >
+                                    <div className="flex items-start justify-between mb-1">
+                                      <div className="flex items-center gap-2">
+                                        <div className="text-xs font-medium text-gray-700">
+                                          {assumption.user?.email || 'Unknown User'}
+                                        </div>
+                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${strengthColors[assumption.strength] || strengthColors.medium}`}>
+                                          {strengthLabels[assumption.strength] || 'Medium'}
+                                        </span>
+                                      </div>
+                                      <div className="text-xs text-gray-400">
+                                        {new Date(assumption.created_at || assumption.createdAt).toLocaleString()}
+                                      </div>
+                                    </div>
+                                    <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                                      {assumption.content}
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Add New Assumption */}
+                      <div className="border-t border-gray-200 pt-3 space-y-2">
+                        <div className="text-xs font-semibold text-gray-700 mb-2">
+                          Add New Assumption
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <textarea
+                            value={newAssumption}
+                            onChange={(e) => setNewAssumption(e.target.value)}
+                            placeholder="Enter assumption..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-blue-500 resize-y min-h-[60px]"
+                            rows={3}
+                          />
+                          
+                          <div className="flex items-center gap-2">
+                            <label className="text-xs font-medium text-gray-700">
+                              Strength:
+                            </label>
+                            <select
+                              value={newAssumptionStrength}
+                              onChange={(e) => setNewAssumptionStrength(e.target.value)}
+                              className="px-2 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:border-blue-500"
+                            >
+                              <option value="weak">Weak</option>
+                              <option value="medium">Medium</option>
+                              <option value="strong">Strong</option>
+                              <option value="evidence-backed">Evidence-backed</option>
+                            </select>
+                          </div>
+                          
+                          <Button
+                            onClick={handleAddAssumption}
+                            disabled={!newAssumption.trim()}
+                            variant={newAssumption.trim() ? 'primary' : 'disabled'}
+                            className="w-full"
+                          >
+                            Add Assumption
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </TabPanel>

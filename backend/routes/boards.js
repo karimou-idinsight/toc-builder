@@ -7,6 +7,7 @@ import BoardNode from '../models/BoardNode.js';
 import BoardEdge from '../models/BoardEdge.js';
 import BoardNodeComment from '../models/BoardNodeComment.js';
 import BoardEdgeComment from '../models/BoardEdgeComment.js';
+import BoardEdgeAssumption from '../models/BoardEdgeAssumption.js';
 import { 
   authenticateToken, 
   requireBoardOwner,
@@ -724,6 +725,151 @@ router.delete('/:boardId/edges/:edgeId/comments/:commentId', authenticateToken, 
   } catch (error) {
     console.error('Delete edge comment error:', error);
     res.status(500).json({ error: 'Failed to delete comment' });
+  }
+});
+
+// ============================================
+// Edge Assumptions Routes
+// ============================================
+
+// Get all assumptions for an edge
+router.get('/:boardId/edges/:edgeId/assumptions', authenticateToken, requireBoardViewer, async (req, res) => {
+  try {
+    const { edgeId } = req.params;
+    
+    // Verify edge belongs to this board
+    const edge = await BoardEdge.findById(edgeId);
+    if (!edge) {
+      return res.status(404).json({ error: 'Edge not found' });
+    }
+    
+    const assumptions = await BoardEdgeAssumption.findByEdgeId(edgeId);
+    
+    res.json({
+      assumptions: assumptions.map(a => a.toJSON())
+    });
+  } catch (error) {
+    console.error('Get edge assumptions error:', error);
+    res.status(500).json({ error: 'Failed to get assumptions' });
+  }
+});
+
+// Create a new assumption for an edge
+router.post('/:boardId/edges/:edgeId/assumptions', authenticateToken, requireBoardContributor, async (req, res) => {
+  try {
+    const { edgeId } = req.params;
+    const { content, strength } = req.body;
+    
+    // Validate input
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ error: 'Assumption content is required' });
+    }
+    
+    // Validate strength
+    const validStrengths = ['weak', 'medium', 'strong', 'evidence-backed'];
+    if (strength && !validStrengths.includes(strength)) {
+      return res.status(400).json({ error: 'Invalid strength value' });
+    }
+    
+    // Verify edge belongs to this board
+    const edge = await BoardEdge.findById(edgeId);
+    if (!edge) {
+      return res.status(404).json({ error: 'Edge not found' });
+    }
+    
+    const assumption = await BoardEdgeAssumption.create({
+      edge_id: edgeId,
+      user_id: req.user.id,
+      content: content.trim(),
+      strength: strength || 'medium'
+    });
+    
+    // Fetch with user data
+    const assumptionWithUser = await BoardEdgeAssumption.findById(assumption.id);
+    
+    res.status(201).json({
+      message: 'Assumption created successfully',
+      assumption: assumptionWithUser.toJSON()
+    });
+  } catch (error) {
+    console.error('Create edge assumption error:', error);
+    res.status(500).json({ error: 'Failed to create assumption' });
+  }
+});
+
+// Update an assumption
+router.put('/:boardId/edges/:edgeId/assumptions/:assumptionId', authenticateToken, requireBoardContributor, async (req, res) => {
+  try {
+    const { assumptionId } = req.params;
+    const { content, strength } = req.body;
+    
+    const assumption = await BoardEdgeAssumption.findById(assumptionId);
+    if (!assumption) {
+      return res.status(404).json({ error: 'Assumption not found' });
+    }
+    
+    // Only assumption owner or board owner can update assumption
+    if (assumption.user_id !== req.user.id && req.board.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized to update this assumption' });
+    }
+    
+    const updateData = {};
+    
+    // Update content if provided
+    if (content !== undefined) {
+      if (content.trim().length === 0) {
+        return res.status(400).json({ error: 'Assumption content cannot be empty' });
+      }
+      updateData.content = content.trim();
+    }
+    
+    // Update strength if provided
+    if (strength !== undefined) {
+      const validStrengths = ['weak', 'medium', 'strong', 'evidence-backed'];
+      if (!validStrengths.includes(strength)) {
+        return res.status(400).json({ error: 'Invalid strength value' });
+      }
+      updateData.strength = strength;
+    }
+    
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'No update data provided' });
+    }
+    
+    const updatedAssumption = await BoardEdgeAssumption.update(assumptionId, updateData);
+    const assumptionWithUser = await BoardEdgeAssumption.findById(updatedAssumption.id);
+    
+    res.json({
+      message: 'Assumption updated successfully',
+      assumption: assumptionWithUser.toJSON()
+    });
+  } catch (error) {
+    console.error('Update edge assumption error:', error);
+    res.status(500).json({ error: 'Failed to update assumption' });
+  }
+});
+
+// Delete an assumption
+router.delete('/:boardId/edges/:edgeId/assumptions/:assumptionId', authenticateToken, requireBoardContributor, async (req, res) => {
+  try {
+    const { assumptionId } = req.params;
+    
+    const assumption = await BoardEdgeAssumption.findById(assumptionId);
+    if (!assumption) {
+      return res.status(404).json({ error: 'Assumption not found' });
+    }
+    
+    // Only assumption owner or board owner can delete assumption
+    if (assumption.user_id !== req.user.id && req.board.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized to delete this assumption' });
+    }
+    
+    await BoardEdgeAssumption.delete(assumptionId);
+    
+    res.json({ message: 'Assumption deleted successfully' });
+  } catch (error) {
+    console.error('Delete edge assumption error:', error);
+    res.status(500).json({ error: 'Failed to delete assumption' });
   }
 });
 
