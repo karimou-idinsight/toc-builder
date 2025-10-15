@@ -5,6 +5,9 @@ import { useSelector } from 'react-redux';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { selectAllEdges } from '../store/selectors';
 import TocNodeTagEditor from './TocNodeTagEditor';
+import Button from './ui/Button';
+import Input from './ui/Input';
+import Textarea from './ui/Textarea';
 import { styles } from '../styles/TocNodeEditDialog.styles';
 
 export default function TocNodeEditDialog({
@@ -223,11 +226,10 @@ export default function TocNodeEditDialog({
           {/* Node Name */}
           <div style={styles.section}>
             <label style={styles.label}>Name</label>
-            <input
+            <Input
               type="text"
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
-              style={styles.input}
               placeholder="Enter node name"
             />
           </div>
@@ -235,10 +237,9 @@ export default function TocNodeEditDialog({
           {/* Description */}
           <div style={styles.section}>
             <label style={styles.label}>Description</label>
-            <textarea
+            <Textarea
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              style={styles.textarea}
               placeholder="Enter node description"
             />
           </div>
@@ -260,7 +261,7 @@ export default function TocNodeEditDialog({
                   </div>
                 ))}
               </div>
-              <input
+              <Input
                 type="text"
                 value={upstreamSearch}
                 onChange={(e) => {
@@ -268,7 +269,6 @@ export default function TocNodeEditDialog({
                   setShowUpstreamDropdown(true);
                 }}
                 onFocus={() => setShowUpstreamDropdown(true)}
-                style={styles.input}
                 placeholder="Search and select upstream nodes..."
               />
               {showUpstreamDropdown && (
@@ -312,7 +312,7 @@ export default function TocNodeEditDialog({
                   </div>
                 ))}
               </div>
-              <input
+              <Input
                 type="text"
                 value={downstreamSearch}
                 onChange={(e) => {
@@ -320,7 +320,6 @@ export default function TocNodeEditDialog({
                   setShowDownstreamDropdown(true);
                 }}
                 onFocus={() => setShowDownstreamDropdown(true)}
-                style={styles.input}
                 placeholder="Search and select downstream nodes..."
               />
               {showDownstreamDropdown && (
@@ -359,22 +358,16 @@ export default function TocNodeEditDialog({
 
           {/* Actions */}
           <div style={styles.actions}>
-            <button
-              style={{...styles.button, ...styles.cancelButton}}
-              onClick={onClose}
-            >
+            <Button variant="secondary" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              style={{
-                ...styles.button, 
-                ...(formData.title.trim() ? styles.saveButton : styles.saveButtonDisabled)
-              }}
+            </Button>
+            <Button
+              variant={formData.title.trim() ? 'primary' : 'disabled'}
               onClick={handleSave}
               disabled={!formData.title.trim()}
             >
               Save Changes
-            </button>
+            </Button>
           </div>
         </DialogPanel>
       </div>

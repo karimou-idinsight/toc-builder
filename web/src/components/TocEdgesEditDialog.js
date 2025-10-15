@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogPanel, DialogTitle, Radio, RadioGroup, Tab, TabGroup, TabList, TabPanels, TabPanel } from '@headlessui/react';
-// Removed styles import - now using Tailwind CSS classes
+import Button from './ui/Button';
+import Input from './ui/Input';
 
 export default function TocEdgesEditDialog({ 
   isOpen, 
@@ -160,12 +161,11 @@ export default function TocEdgesEditDialog({
                       <label htmlFor="edge-label" className="block text-sm font-medium mb-2">
                         Label (optional)
                       </label>
-                      <input
+                      <Input
                         id="edge-label"
                         type="text"
                         value={label}
                         onChange={(e) => setLabel(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         placeholder="Enter connection label..."
                       />
                     </div>
@@ -264,24 +264,20 @@ export default function TocEdgesEditDialog({
                       )}
 
                       <div className="mt-2.5 flex gap-2">
-                        <input
+                        <Input
                           type="text"
                           value={newComment}
                           onChange={(e) => setNewComment(e.target.value)}
                           placeholder="Add a comment..."
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                          className="flex-1"
                         />
-                        <button
+                        <Button
                           onClick={handleAddComment}
                           disabled={!newComment.trim()}
-                          className={`px-3 py-2 text-white border-none rounded-md text-sm ${
-                            newComment.trim() 
-                              ? 'bg-blue-500 cursor-pointer hover:bg-blue-600' 
-                              : 'bg-blue-300 cursor-not-allowed'
-                          }`}
+                          variant={newComment.trim() ? 'primary' : 'disabled'}
                         >
                           Add
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </TabPanel>
@@ -293,27 +289,18 @@ export default function TocEdgesEditDialog({
           {/* Buttons */}
           <div className="flex justify-between items-center pt-4 border-t border-gray-200 mt-3">
             {/* Delete button on the left */}
-            <button
-              onClick={handleDelete}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-500 border-none rounded-md cursor-pointer hover:bg-red-600 transition-colors"
-            >
+            <Button onClick={handleDelete} variant="danger">
               Delete Connection
-            </button>
+            </Button>
             
             {/* Cancel and Save buttons on the right */}
             <div className="flex gap-3">
-              <button
-                onClick={handleCancel}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors"
-              >
+              <Button onClick={handleCancel} variant="secondary">
                 Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-500 border-none rounded-md cursor-pointer hover:bg-blue-600 transition-colors"
-              >
+              </Button>
+              <Button onClick={handleSave} variant="primary">
                 Save Changes
-              </button>
+              </Button>
             </div>
           </div>
 
