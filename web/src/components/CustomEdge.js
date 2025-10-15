@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { BaseEdge, EdgeLabelRenderer, getStraightPath } from 'reactflow';
+import { BaseEdge, EdgeLabelRenderer, getBezierPath } from 'reactflow';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faComment, faLightbulb } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
@@ -20,7 +20,7 @@ export default function CustomEdge({
   data,
   markerEnd,
 }) {
-  const [edgePath, labelX, labelY] = getStraightPath({
+  const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
     sourcePosition,
