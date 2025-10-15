@@ -6,6 +6,7 @@ class BoardEdgeComment {
     this.edge_id = data.edge_id;
     this.user_id = data.user_id;
     this.content = data.content;
+    this.status = data.status;
     this.created_at = data.created_at;
     this.updated_at = data.updated_at;
     
@@ -122,16 +123,14 @@ class BoardEdgeComment {
 
   // Update comment
   static async update(id, updates) {
-    const allowedFields = ['content'];
+    const allowedFields = ['content', 'status'];
     const fields = [];
     const values = [];
-    let paramCount = 1;
 
-    Object.keys(updates).forEach(key => {
+    Object.keys(updates).forEach((key, index) => {
       if (allowedFields.includes(key)) {
-        fields.push(`${key} = $${paramCount}`);
+        fields.push(`${key} = $${index + 1}`);
         values.push(updates[key]);
-        paramCount++;
       }
     });
 
@@ -140,11 +139,10 @@ class BoardEdgeComment {
       return existing;
     }
 
-    values.push(id);
     const query = `
       UPDATE board_edge_comments 
       SET ${fields.join(', ')}
-      WHERE id = $${paramCount}
+      WHERE id = ${id}
       RETURNING *
     `;
 
@@ -180,6 +178,7 @@ class BoardEdgeComment {
       edge_id: this.edge_id,
       user_id: this.user_id,
       content: this.content,
+      status: this.status,
       user: this.user,
       created_at: this.created_at,
       updated_at: this.updated_at

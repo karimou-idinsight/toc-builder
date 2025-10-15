@@ -117,7 +117,7 @@ export default function TocEdgesEditDialog({
                             selected ? 'border-b-blue-500 text-gray-900' : 'border-b-transparent text-gray-500'
                           }`}
                         >
-                          Comments {comments.length > 0 && `(${comments.length})`}
+                          Comments {comments.filter(c => c.status !== 'solved').length > 0 && `(${comments.filter(c => c.status !== 'solved').length})`}
                         </Tab>
                       </TabList>
 
@@ -249,12 +249,13 @@ export default function TocEdgesEditDialog({
                             comments.map((c) => {
                               const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
                               const canToggleStatus = c.user_id === currentUser.id;
+                              const commentStatus = c.status || 'open';
                               
                               return (
                                 <div 
                                   key={c.id} 
                                   className={`p-2 rounded-md border mb-2 ${
-                                    c.status === 'solved' 
+                                    commentStatus === 'solved' 
                                       ? 'bg-green-50 border-green-200' 
                                       : 'bg-white border-gray-200'
                                   }`}
@@ -265,11 +266,11 @@ export default function TocEdgesEditDialog({
                                         {(c.user?.first_name || 'User') + (c.user?.last_name ? ` ${c.user.last_name}` : '')}
                                       </div>
                                       <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                        c.status === 'solved' 
+                                        commentStatus === 'solved' 
                                           ? 'bg-green-200 text-green-800' 
                                           : 'bg-blue-200 text-blue-800'
                                       }`}>
-                                        {c.status === 'solved' ? '✓ Solved' : 'Open'}
+                                        {commentStatus === 'solved' ? '✓ Solved' : 'Open'}
                                       </span>
                                     </div>
                                     <div className="text-xs text-gray-400">
@@ -279,27 +280,33 @@ export default function TocEdgesEditDialog({
                                   <div className="text-sm text-gray-700 whitespace-pre-wrap mb-1">{c.content}</div>
                                   {canToggleStatus && (
                                     <button
-                                      onClick={async () => {
+                                      onClick={async (e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
                                         try {
-                                          const newStatus = c.status === 'solved' ? 'open' : 'solved';
+                                          const newStatus = commentStatus === 'solved' ? 'open' : 'solved';
+                                          console.log('Updating edge comment status:', c.id, 'from', commentStatus, 'to', newStatus);
                                           const { boardsApi } = await import('../utils/boardsApi');
-                                          const { comment: updatedComment } = await boardsApi.updateEdgeComment(
+                                          const result = await boardsApi.updateEdgeComment(
                                             boardId, 
                                             edgeId, 
                                             c.id, 
                                             { status: newStatus }
                                           );
+                                          console.log('Update result:', result);
+                                          const updatedComment = result.comment;
+                                          console.log('Updated edge comment:', updatedComment);
                                           setComments(prev => prev.map(comment => 
-                                            comment.id === c.id ? updatedComment : comment
+                                            comment.id === c.id ? { ...comment, ...updatedComment } : comment
                                           ));
                                         } catch (error) {
                                           console.error('Error updating comment status:', error);
                                           setCommentError('Failed to update comment status');
                                         }
                                       }}
-                                      className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                                      className="text-xs text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
                                     >
-                                      {c.status === 'solved' ? 'Reopen' : 'Mark as Solved'}
+                                      {commentStatus === 'solved' ? 'Reopen' : 'Mark as Solved'}
                                     </button>
                                   )}
                                 </div>

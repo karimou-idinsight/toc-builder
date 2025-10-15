@@ -108,7 +108,7 @@ export function transformBoardData(backendData) {
         createdAt: backendNode.created_at,
         updatedAt: backendNode.updated_at,
         comments: nodeCommentsMap.get(backendNode.id) || [],
-        commentCount: (nodeCommentsMap.get(backendNode.id) || []).length
+        commentCount: (nodeCommentsMap.get(backendNode.id) || []).filter(c => c.status !== 'solved').length
       });
     });
   });
@@ -133,7 +133,7 @@ export function transformBoardData(backendData) {
     animated: false,
     createdAt: edge.created_at,
     comments: edgeCommentsMap.get(edge.id) || [],
-    commentCount: (edgeCommentsMap.get(edge.id) || []).length
+    commentCount: (edgeCommentsMap.get(edge.id) || []).filter(c => c.status !== 'solved').length
   }));
 
   // Return transformed board

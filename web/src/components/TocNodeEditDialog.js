@@ -280,7 +280,7 @@ export default function TocNodeEditDialog({
                   ? 'border-blue-500 text-blue-600' 
                   : 'border-transparent text-gray-600 hover:text-gray-800'
               }`}>
-                Comments {comments.length > 0 && `(${comments.length})`}
+                Comments {comments.filter(c => c.status !== 'solved').length > 0 && `(${comments.filter(c => c.status !== 'solved').length})`}
               </Tab>
             </TabList>
 
@@ -434,23 +434,24 @@ export default function TocNodeEditDialog({
                       comments.map((comment) => {
                         const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
                         const canToggleStatus = comment.user_id === currentUser.id || board.owner_id === currentUser.id;
+                        const commentStatus = comment.status || 'open';
                         
                         return (
                           <div 
                             key={comment.id} 
-                            className={`rounded-lg p-3 ${comment.status === 'solved' ? 'bg-green-50 border border-green-200' : 'bg-gray-50'}`}
+                            className={`rounded-lg p-3 ${commentStatus === 'solved' ? 'bg-green-50 border border-green-200' : 'bg-gray-50'}`}
                           >
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex items-center gap-2">
                                 <span className="font-medium text-sm text-gray-700">
-                                  {comment.user_email || 'Unknown User'}
+                                  {comment.user?.email || 'Unknown User'}
                                 </span>
                                 <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                  comment.status === 'solved' 
+                                  commentStatus === 'solved' 
                                     ? 'bg-green-200 text-green-800' 
                                     : 'bg-blue-200 text-blue-800'
                                 }`}>
-                                  {comment.status === 'solved' ? '✓ Solved' : 'Open'}
+                                  {commentStatus === 'solved' ? '✓ Solved' : 'Open'}
                                 </span>
                               </div>
                               <span className="text-xs text-gray-500">
@@ -460,26 +461,32 @@ export default function TocNodeEditDialog({
                             <p className="text-sm text-gray-800 whitespace-pre-wrap mb-2">{comment.content}</p>
                             {canToggleStatus && (
                               <button
-                                onClick={async () => {
+                                onClick={async (e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
                                   try {
-                                    const newStatus = comment.status === 'solved' ? 'open' : 'solved';
-                                    const { comment: updatedComment } = await boardsApi.updateNodeComment(
+                                    const newStatus = commentStatus === 'solved' ? 'open' : 'solved';
+                                    console.log('Updating comment status:', comment.id, 'from', commentStatus, 'to', newStatus);
+                                    const result = await boardsApi.updateNodeComment(
                                       board.id, 
                                       node.id, 
                                       comment.id, 
                                       { status: newStatus }
                                     );
+                                    console.log('Update result:', result);
+                                    const updatedComment = result.comment;
+                                    console.log('Updated comment:', updatedComment);
                                     setComments(prev => prev.map(c => 
-                                      c.id === comment.id ? updatedComment : c
+                                      c.id === comment.id ? { ...c, ...updatedComment } : c
                                     ));
                                   } catch (error) {
                                     console.error('Error updating comment status:', error);
                                     alert('Failed to update comment status');
                                   }
                                 }}
-                                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                                className="text-xs text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
                               >
-                                {comment.status === 'solved' ? 'Reopen' : 'Mark as Solved'}
+                                {commentStatus === 'solved' ? 'Reopen' : 'Mark as Solved'}
                               </button>
                             )}
                           </div>
