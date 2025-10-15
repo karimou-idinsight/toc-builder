@@ -70,4 +70,18 @@ export const edgeInteractionStyles = `
   .reactflow-wrapper .comment-indicator:active {
     transform: scale(0.95);
   }
+
+  /* assumption indicator styles */
+  .reactflow-wrapper .assumption-indicator {
+    transition: all 0.2s ease;
+  }
+  
+  .reactflow-wrapper .assumption-indicator:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .reactflow-wrapper .assumption-indicator:active {
+    transform: scale(0.95);
+  }
 `;

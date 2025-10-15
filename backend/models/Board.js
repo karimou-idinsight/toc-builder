@@ -5,7 +5,6 @@ class Board {
     this.id = data.id;
     this.title = data.title;
     this.description = data.description;
-    this.owner_id = data.owner_id;
     this.is_public = data.is_public;
     this.settings = data.settings || {};
     
@@ -28,12 +27,12 @@ class Board {
     const { title, description, owner_id, is_public = false, settings = {} } = boardData;
     
     const query = `
-      INSERT INTO boards (title, description, owner_id, is_public, settings)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO boards (title, description, is_public, settings)
+      VALUES ($1, $2, $3, $4)
       RETURNING *
     `;
     
-    const values = [title, description, owner_id, is_public, JSON.stringify(settings)];
+    const values = [title, description, is_public, JSON.stringify(settings)];
     const result = await pool.query(query, values);
     
     const board = new Board(result.rows[0]);
@@ -43,7 +42,8 @@ class Board {
     await BoardPermission.create({
       board_id: board.id,
       user_id: owner_id,
-      role: 'owner'
+      role: 'owner',
+      granted_by: owner_id
     });
     
     return board;
@@ -68,7 +68,12 @@ class Board {
 
   // Find boards by owner
   static async findByOwner(ownerId) {
-    const query = 'SELECT * FROM boards WHERE owner_id = $1 ORDER BY created_at DESC';
+    const query = `
+      SELECT b.* FROM boards b
+      JOIN board_permissions bp ON b.id = bp.board_id
+      WHERE bp.user_id = $1 AND bp.role = 'owner'
+      ORDER BY b.created_at DESC
+    `;
     const result = await pool.query(query, [ownerId]);
     
     return result.rows.map(row => {
@@ -84,7 +89,8 @@ class Board {
     const query = `
       SELECT b.*, u.first_name, u.last_name, u.avatar_url
       FROM boards b
-      JOIN users u ON b.owner_id = u.id
+      JOIN board_permissions bp ON b.id = bp.board_id AND bp.role = 'owner'
+      JOIN users u ON bp.user_id = u.id
       WHERE b.is_public = true
       ORDER BY b.created_at DESC
       LIMIT $1 OFFSET $2
@@ -115,8 +121,8 @@ class Board {
         bp.role,
         (SELECT COUNT(DISTINCT user_id) FROM board_permissions WHERE board_id = b.id) as collaborator_count
       FROM boards b
-      LEFT JOIN board_permissions bp ON b.id = bp.board_id
-      WHERE b.owner_id = $1 OR bp.user_id = $1
+      JOIN board_permissions bp ON b.id = bp.board_id
+      WHERE bp.user_id = $1
       ORDER BY b.updated_at DESC
     `;
     
@@ -129,7 +135,7 @@ class Board {
       const board = new Board(row);
       return {
         ...board.toJSON(),
-        role: row.role || 'owner',
+        role: row.role,
         name: board.title, // Add name field for frontend compatibility
         collaborator_count: parseInt(row.collaborator_count) || 0
       };
@@ -191,11 +197,6 @@ class Board {
 
   // Check if user has permission
   async hasPermission(userId, requiredRole) {
-    // Owner always has all permissions
-    if (this.owner_id === userId) {
-      return true;
-    }
-
     // Check user's role on this board
     const query = `
       SELECT role FROM board_permissions 
@@ -213,7 +214,7 @@ class Board {
     // Define role hierarchy
     const roleHierarchy = {
       'owner': 4,
-      'contributor': 3,
+      'editor': 3,
       'reviewer': 2,
       'viewer': 1
     };
@@ -238,9 +239,10 @@ class Board {
   // Get board with owner info
   async withOwner() {
     const query = `
-      SELECT b.*, u.first_name, u.last_name, u.email, u.avatar_url
+      SELECT b.*, u.id as owner_id, u.first_name, u.last_name, u.email, u.avatar_url
       FROM boards b
-      JOIN users u ON b.owner_id = u.id
+      JOIN board_permissions bp ON b.id = bp.board_id AND bp.role = 'owner'
+      JOIN users u ON bp.user_id = u.id
       WHERE b.id = $1
     `;
     
@@ -333,7 +335,6 @@ class Board {
       id: this.id,
       title: this.title,
       description: this.description,
-      owner_id: this.owner_id,
       is_public: this.is_public,
       settings: this.settings,
       list_ids: this.list_ids,

@@ -89,14 +89,17 @@ const requireBoardPermission = (requiredRole) => {
 // Board ownership middleware
 const requireBoardOwner = requireBoardPermission('owner');
 
-// Board contributor middleware
-const requireBoardContributor = requireBoardPermission('contributor');
+// Board editor middleware (can add/delete/modify nodes and edges)
+const requireBoardEditor = requireBoardPermission('editor');
 
-// Board reviewer middleware
+// Board reviewer middleware (can view and comment)
 const requireBoardReviewer = requireBoardPermission('reviewer');
 
-// Board viewer middleware
+// Board viewer middleware (can only view)
 const requireBoardViewer = requireBoardPermission('viewer');
+
+// Backward compatibility alias
+const requireBoardContributor = requireBoardPermission('editor');
 
 // Super Admin middleware (for system-wide admin operations)
 const requireSuperAdmin = async (req, res, next) => {
@@ -187,7 +190,8 @@ export {
   optionalAuth,
   requireBoardPermission,
   requireBoardOwner,
-  requireBoardContributor,
+  requireBoardEditor,
+  requireBoardContributor, // Backward compatibility
   requireBoardReviewer,
   requireBoardViewer,
   requireSuperAdmin,

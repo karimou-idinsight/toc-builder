@@ -11,7 +11,8 @@ import BoardEdgeAssumption from '../models/BoardEdgeAssumption.js';
 import { 
   authenticateToken, 
   requireBoardOwner,
-  requireBoardContributor,
+  requireBoardEditor,
+  requireBoardReviewer,
   requireBoardViewer,
   requireEmailVerification,
   rateLimit 
@@ -99,7 +100,7 @@ router.get('/:boardId', authenticateToken, requireBoardViewer, async (req, res) 
 });
 
 // Update board
-router.put('/:boardId', authenticateToken, requireBoardContributor, async (req, res) => {
+router.put('/:boardId', authenticateToken, requireBoardEditor, async (req, res) => {
   try {
     const { title, description, is_public, settings } = req.body;
     
@@ -157,9 +158,9 @@ router.post('/:boardId/permissions', authenticateToken, requireBoardOwner, async
       return res.status(400).json({ error: 'User ID and role are required' });
     }
     
-    if (!['contributor', 'reviewer', 'viewer'].includes(role)) {
+    if (!['editor', 'reviewer', 'viewer'].includes(role)) {
       return res.status(400).json({ 
-        error: 'Role must be contributor, reviewer, or viewer' 
+        error: 'Role must be editor, reviewer, or viewer' 
       });
     }
     
@@ -200,9 +201,9 @@ router.put('/:boardId/permissions/:userId', authenticateToken, requireBoardOwner
     const { userId } = req.params;
     const { role } = req.body;
     
-    if (!role || !['contributor', 'reviewer', 'viewer'].includes(role)) {
+    if (!role || !['editor', 'reviewer', 'viewer'].includes(role)) {
       return res.status(400).json({ 
-        error: 'Valid role is required (contributor, reviewer, or viewer)' 
+        error: 'Valid role is required (editor, reviewer, or viewer)' 
       });
     }
     
@@ -244,7 +245,7 @@ router.delete('/:boardId/permissions/:userId', authenticateToken, requireBoardOw
 });
 
 // Invite user to board
-router.post('/:boardId/invite', authenticateToken, requireBoardContributor, async (req, res) => {
+router.post('/:boardId/invite', authenticateToken, requireBoardOwner, async (req, res) => {
   try {
     const { email, role } = req.body;
     
@@ -252,9 +253,9 @@ router.post('/:boardId/invite', authenticateToken, requireBoardContributor, asyn
       return res.status(400).json({ error: 'Email and role are required' });
     }
     
-    if (!['contributor', 'reviewer', 'viewer'].includes(role)) {
+    if (!['editor', 'reviewer', 'viewer'].includes(role)) {
       return res.status(400).json({ 
-        error: 'Role must be contributor, reviewer, or viewer' 
+        error: 'Role must be editor, reviewer, or viewer' 
       });
     }
     
@@ -380,7 +381,7 @@ router.get('/:boardId/data', authenticateToken, requireBoardViewer, async (req, 
 // ============================
 
 // Create list
-router.post('/:boardId/lists', authenticateToken, requireBoardContributor, async (req, res) => {
+router.post('/:boardId/lists', authenticateToken, requireBoardEditor, async (req, res) => {
   try {
     const { id, name, color, type, nodeIds = [] } = req.body;
     
@@ -402,7 +403,7 @@ router.post('/:boardId/lists', authenticateToken, requireBoardContributor, async
 });
 
 // Update list
-router.put('/:boardId/lists/:listId', authenticateToken, requireBoardContributor, async (req, res) => {
+router.put('/:boardId/lists/:listId', authenticateToken, requireBoardEditor, async (req, res) => {
   try {
     const { listId } = req.params;
     const { name, color, type, nodeIds } = req.body;
@@ -430,7 +431,7 @@ router.put('/:boardId/lists/:listId', authenticateToken, requireBoardContributor
 });
 
 // Delete list
-router.delete('/:boardId/lists/:listId', authenticateToken, requireBoardContributor, async (req, res) => {
+router.delete('/:boardId/lists/:listId', authenticateToken, requireBoardEditor, async (req, res) => {
   try {
     const { listId } = req.params;
     
@@ -445,7 +446,7 @@ router.delete('/:boardId/lists/:listId', authenticateToken, requireBoardContribu
 });
 
 // Reorder lists
-router.put('/:boardId/lists-order', authenticateToken, requireBoardContributor, async (req, res) => {
+router.put('/:boardId/lists-order', authenticateToken, requireBoardEditor, async (req, res) => {
   try {
     const { listIds } = req.body;
     
@@ -486,7 +487,7 @@ router.get('/:boardId/nodes/:nodeId/comments', authenticateToken, requireBoardVi
 });
 
 // Create comment on a node
-router.post('/:boardId/nodes/:nodeId/comments', authenticateToken, requireBoardContributor, async (req, res) => {
+router.post('/:boardId/nodes/:nodeId/comments', authenticateToken, requireBoardReviewer, async (req, res) => {
   try {
     const { nodeId } = req.params;
     const { content } = req.body;
@@ -521,7 +522,7 @@ router.post('/:boardId/nodes/:nodeId/comments', authenticateToken, requireBoardC
 });
 
 // Update node comment
-router.put('/:boardId/nodes/:nodeId/comments/:commentId', authenticateToken, requireBoardContributor, async (req, res) => {
+router.put('/:boardId/nodes/:nodeId/comments/:commentId', authenticateToken, requireBoardReviewer, async (req, res) => {
   try {
     const { commentId } = req.params;
     const { content, status } = req.body;
@@ -531,8 +532,11 @@ router.put('/:boardId/nodes/:nodeId/comments/:commentId', authenticateToken, req
       return res.status(404).json({ error: 'Comment not found' });
     }
     
+    // Get user's role on the board
+    const userRole = await BoardPermission.getUserRole(req.board.id, req.user.id);
+    
     // Only comment owner or board owner can update comment
-    if (comment.user_id !== req.user.id && req.board.owner_id !== req.user.id) {
+    if (comment.user_id !== req.user.id && userRole !== 'owner') {
       return res.status(403).json({ error: 'Not authorized to update this comment' });
     }
     
@@ -572,7 +576,7 @@ router.put('/:boardId/nodes/:nodeId/comments/:commentId', authenticateToken, req
 });
 
 // Delete node comment
-router.delete('/:boardId/nodes/:nodeId/comments/:commentId', authenticateToken, requireBoardContributor, async (req, res) => {
+router.delete('/:boardId/nodes/:nodeId/comments/:commentId', authenticateToken, requireBoardReviewer, async (req, res) => {
   try {
     const { commentId } = req.params;
     
@@ -581,8 +585,11 @@ router.delete('/:boardId/nodes/:nodeId/comments/:commentId', authenticateToken, 
       return res.status(404).json({ error: 'Comment not found' });
     }
     
+    // Get user's role on the board
+    const userRole = await BoardPermission.getUserRole(req.board.id, req.user.id);
+    
     // Only comment owner or board owner can delete comment
-    if (comment.user_id !== req.user.id && req.board.owner_id !== req.user.id) {
+    if (comment.user_id !== req.user.id && userRole !== 'owner') {
       return res.status(403).json({ error: 'Not authorized to delete this comment' });
     }
     
@@ -619,7 +626,7 @@ router.get('/:boardId/edges/:edgeId/comments', authenticateToken, requireBoardVi
 });
 
 // Create comment on an edge
-router.post('/:boardId/edges/:edgeId/comments', authenticateToken, requireBoardContributor, async (req, res) => {
+router.post('/:boardId/edges/:edgeId/comments', authenticateToken, requireBoardReviewer, async (req, res) => {
   try {
     const { edgeId } = req.params;
     const { content } = req.body;
@@ -654,7 +661,7 @@ router.post('/:boardId/edges/:edgeId/comments', authenticateToken, requireBoardC
 });
 
 // Update edge comment
-router.put('/:boardId/edges/:edgeId/comments/:commentId', authenticateToken, requireBoardContributor, async (req, res) => {
+router.put('/:boardId/edges/:edgeId/comments/:commentId', authenticateToken, requireBoardReviewer, async (req, res) => {
   try {
     const { commentId } = req.params;
     const { content, status } = req.body;
@@ -664,8 +671,11 @@ router.put('/:boardId/edges/:edgeId/comments/:commentId', authenticateToken, req
       return res.status(404).json({ error: 'Comment not found' });
     }
     
+    // Get user's role on the board
+    const userRole = await BoardPermission.getUserRole(req.board.id, req.user.id);
+    
     // Only comment owner or board owner can update comment
-    if (comment.user_id !== req.user.id && req.board.owner_id !== req.user.id) {
+    if (comment.user_id !== req.user.id && userRole !== 'owner') {
       return res.status(403).json({ error: 'Not authorized to update this comment' });
     }
     
@@ -705,7 +715,7 @@ router.put('/:boardId/edges/:edgeId/comments/:commentId', authenticateToken, req
 });
 
 // Delete edge comment
-router.delete('/:boardId/edges/:edgeId/comments/:commentId', authenticateToken, requireBoardContributor, async (req, res) => {
+router.delete('/:boardId/edges/:edgeId/comments/:commentId', authenticateToken, requireBoardReviewer, async (req, res) => {
   try {
     const { commentId } = req.params;
     
@@ -714,8 +724,11 @@ router.delete('/:boardId/edges/:edgeId/comments/:commentId', authenticateToken, 
       return res.status(404).json({ error: 'Comment not found' });
     }
     
+    // Get user's role on the board
+    const userRole = await BoardPermission.getUserRole(req.board.id, req.user.id);
+    
     // Only comment owner or board owner can delete comment
-    if (comment.user_id !== req.user.id && req.board.owner_id !== req.user.id) {
+    if (comment.user_id !== req.user.id && userRole !== 'owner') {
       return res.status(403).json({ error: 'Not authorized to delete this comment' });
     }
     
@@ -755,7 +768,7 @@ router.get('/:boardId/edges/:edgeId/assumptions', authenticateToken, requireBoar
 });
 
 // Create a new assumption for an edge
-router.post('/:boardId/edges/:edgeId/assumptions', authenticateToken, requireBoardContributor, async (req, res) => {
+router.post('/:boardId/edges/:edgeId/assumptions', authenticateToken, requireBoardEditor, async (req, res) => {
   try {
     const { edgeId } = req.params;
     const { content, strength } = req.body;
@@ -798,7 +811,7 @@ router.post('/:boardId/edges/:edgeId/assumptions', authenticateToken, requireBoa
 });
 
 // Update an assumption
-router.put('/:boardId/edges/:edgeId/assumptions/:assumptionId', authenticateToken, requireBoardContributor, async (req, res) => {
+router.put('/:boardId/edges/:edgeId/assumptions/:assumptionId', authenticateToken, requireBoardEditor, async (req, res) => {
   try {
     const { assumptionId } = req.params;
     const { content, strength } = req.body;
@@ -808,8 +821,11 @@ router.put('/:boardId/edges/:edgeId/assumptions/:assumptionId', authenticateToke
       return res.status(404).json({ error: 'Assumption not found' });
     }
     
+    // Get user's role on the board
+    const userRole = await BoardPermission.getUserRole(req.board.id, req.user.id);
+    
     // Only assumption owner or board owner can update assumption
-    if (assumption.user_id !== req.user.id && req.board.owner_id !== req.user.id) {
+    if (assumption.user_id !== req.user.id && userRole !== 'owner') {
       return res.status(403).json({ error: 'Not authorized to update this assumption' });
     }
     
@@ -850,7 +866,7 @@ router.put('/:boardId/edges/:edgeId/assumptions/:assumptionId', authenticateToke
 });
 
 // Delete an assumption
-router.delete('/:boardId/edges/:edgeId/assumptions/:assumptionId', authenticateToken, requireBoardContributor, async (req, res) => {
+router.delete('/:boardId/edges/:edgeId/assumptions/:assumptionId', authenticateToken, requireBoardEditor, async (req, res) => {
   try {
     const { assumptionId } = req.params;
     
@@ -859,8 +875,11 @@ router.delete('/:boardId/edges/:edgeId/assumptions/:assumptionId', authenticateT
       return res.status(404).json({ error: 'Assumption not found' });
     }
     
+    // Get user's role on the board
+    const userRole = await BoardPermission.getUserRole(req.board.id, req.user.id);
+    
     // Only assumption owner or board owner can delete assumption
-    if (assumption.user_id !== req.user.id && req.board.owner_id !== req.user.id) {
+    if (assumption.user_id !== req.user.id && userRole !== 'owner') {
       return res.status(403).json({ error: 'Not authorized to delete this assumption' });
     }
     

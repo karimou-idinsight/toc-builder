@@ -116,14 +116,6 @@ class BoardPermission {
 
   // Get user's role on board
   static async getUserRole(boardId, userId) {
-    // Check if user is owner
-    const ownerQuery = 'SELECT id FROM boards WHERE id = $1 AND owner_id = $2';
-    const ownerResult = await pool.query(ownerQuery, [boardId, userId]);
-    
-    if (ownerResult.rows.length > 0) {
-      return 'owner';
-    }
-    
     // Check permissions table
     const query = `
       SELECT role FROM board_permissions 
