@@ -167,6 +167,24 @@ export const boardsApi = {
       body: JSON.stringify({ listIds })
     });
     return handleResponse(response);
+  },
+
+  // Edge comments
+  async getEdgeComments(boardId, edgeId) {
+    const response = await fetch(`${API_URL}/api/boards/${boardId}/edges/${edgeId}/comments`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
+
+  async createEdgeComment(boardId, edgeId, content) {
+    const response = await fetch(`${API_URL}/api/boards/${boardId}/edges/${edgeId}/comments`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ content })
+    });
+    return handleResponse(response);
   }
 };
 

@@ -28,7 +28,7 @@ export function transformBoardData(backendData) {
   }
 
   // Backend returns board data with lists/nodes/edges merged in, not separated
-  const { lists, nodes, edges, ...boardFields } = backendData;
+  const { lists, nodes, edges, nodeComments, edgeComments, ...boardFields } = backendData;
   const board = boardFields;
 
   // Validate required fields
@@ -102,6 +102,15 @@ export function transformBoardData(backendData) {
     });
   });
 
+  // Create a map of edge comments by edge ID for quick lookup
+  const edgeCommentsMap = new Map();
+  (edgeComments || []).forEach(comment => {
+    if (!edgeCommentsMap.has(comment.edge_id)) {
+      edgeCommentsMap.set(comment.edge_id, []);
+    }
+    edgeCommentsMap.get(comment.edge_id).push(comment);
+  });
+
   // Transform edges to frontend format
   const transformedEdges = edges.map(edge => ({
     id: String(edge.id),
@@ -111,7 +120,9 @@ export function transformBoardData(backendData) {
     label: edge.label || EDGE_STYLES[edge.type]?.label || '',
     style: EDGE_STYLES[edge.type] || {},
     animated: false,
-    createdAt: edge.created_at
+    createdAt: edge.created_at,
+    comments: edgeCommentsMap.get(edge.id) || [],
+    commentCount: (edgeCommentsMap.get(edge.id) || []).length
   }));
 
   // Return transformed board

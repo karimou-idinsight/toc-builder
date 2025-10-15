@@ -5,6 +5,8 @@ import BoardInvitation from '../models/BoardInvitation.js';
 import BoardList from '../models/BoardList.js';
 import BoardNode from '../models/BoardNode.js';
 import BoardEdge from '../models/BoardEdge.js';
+import BoardNodeComment from '../models/BoardNodeComment.js';
+import BoardEdgeComment from '../models/BoardEdgeComment.js';
 import { 
   authenticateToken, 
   requireBoardOwner,
@@ -456,6 +458,236 @@ router.put('/:boardId/lists-order', authenticateToken, requireBoardContributor, 
   } catch (error) {
     console.error('Reorder lists error:', error);
     res.status(500).json({ error: 'Failed to reorder lists' });
+  }
+});
+
+// ============================
+// Node Comment Routes
+// ============================
+
+// Get comments for a node
+router.get('/:boardId/nodes/:nodeId/comments', authenticateToken, requireBoardViewer, async (req, res) => {
+  try {
+    const { nodeId } = req.params;
+    
+    // Verify node exists
+    const node = await BoardNode.findById(nodeId);
+    if (!node) {
+      return res.status(404).json({ error: 'Node not found' });
+    }
+    
+    const comments = await BoardNodeComment.findByNodeId(nodeId);
+    res.json({ comments: comments.map(c => c.toJSON()) });
+  } catch (error) {
+    console.error('Get node comments error:', error);
+    res.status(500).json({ error: 'Failed to get node comments' });
+  }
+});
+
+// Create comment on a node
+router.post('/:boardId/nodes/:nodeId/comments', authenticateToken, requireBoardContributor, async (req, res) => {
+  try {
+    const { nodeId } = req.params;
+    const { content } = req.body;
+    
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ error: 'Comment content is required' });
+    }
+    
+    // Verify node exists
+    const node = await BoardNode.findById(nodeId);
+    if (!node) {
+      return res.status(404).json({ error: 'Node not found' });
+    }
+    
+    const comment = await BoardNodeComment.create({
+      node_id: nodeId,
+      user_id: req.user.id,
+      content: content.trim()
+    });
+    
+    // Fetch the comment with user info
+    const commentWithUser = await BoardNodeComment.findById(comment.id);
+    
+    res.status(201).json({
+      message: 'Comment created successfully',
+      comment: commentWithUser.toJSON()
+    });
+  } catch (error) {
+    console.error('Create node comment error:', error);
+    res.status(500).json({ error: 'Failed to create comment' });
+  }
+});
+
+// Update node comment
+router.put('/:boardId/nodes/:nodeId/comments/:commentId', authenticateToken, requireBoardContributor, async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const { content } = req.body;
+    
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ error: 'Comment content is required' });
+    }
+    
+    const comment = await BoardNodeComment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+    
+    // Only comment owner or board owner can update comment
+    if (comment.user_id !== req.user.id && req.board.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized to update this comment' });
+    }
+    
+    const updatedComment = await BoardNodeComment.update(commentId, { content: content.trim() });
+    const commentWithUser = await BoardNodeComment.findById(updatedComment.id);
+    
+    res.json({
+      message: 'Comment updated successfully',
+      comment: commentWithUser.toJSON()
+    });
+  } catch (error) {
+    console.error('Update node comment error:', error);
+    res.status(500).json({ error: 'Failed to update comment' });
+  }
+});
+
+// Delete node comment
+router.delete('/:boardId/nodes/:nodeId/comments/:commentId', authenticateToken, requireBoardContributor, async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    
+    const comment = await BoardNodeComment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+    
+    // Only comment owner or board owner can delete comment
+    if (comment.user_id !== req.user.id && req.board.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized to delete this comment' });
+    }
+    
+    await BoardNodeComment.delete(commentId);
+    
+    res.json({ message: 'Comment deleted successfully' });
+  } catch (error) {
+    console.error('Delete node comment error:', error);
+    res.status(500).json({ error: 'Failed to delete comment' });
+  }
+});
+
+// ============================
+// Edge Comment Routes
+// ============================
+
+// Get comments for an edge
+router.get('/:boardId/edges/:edgeId/comments', authenticateToken, requireBoardViewer, async (req, res) => {
+  try {
+    const { edgeId } = req.params;
+    
+    // Verify edge exists
+    const edge = await BoardEdge.findById(edgeId);
+    if (!edge) {
+      return res.status(404).json({ error: 'Edge not found' });
+    }
+    
+    const comments = await BoardEdgeComment.findByEdgeId(edgeId);
+    res.json({ comments: comments.map(c => c.toJSON()) });
+  } catch (error) {
+    console.error('Get edge comments error:', error);
+    res.status(500).json({ error: 'Failed to get edge comments' });
+  }
+});
+
+// Create comment on an edge
+router.post('/:boardId/edges/:edgeId/comments', authenticateToken, requireBoardContributor, async (req, res) => {
+  try {
+    const { edgeId } = req.params;
+    const { content } = req.body;
+    
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ error: 'Comment content is required' });
+    }
+    
+    // Verify edge exists
+    const edge = await BoardEdge.findById(edgeId);
+    if (!edge) {
+      return res.status(404).json({ error: 'Edge not found' });
+    }
+    
+    const comment = await BoardEdgeComment.create({
+      edge_id: edgeId,
+      user_id: req.user.id,
+      content: content.trim()
+    });
+    
+    // Fetch the comment with user info
+    const commentWithUser = await BoardEdgeComment.findById(comment.id);
+    
+    res.status(201).json({
+      message: 'Comment created successfully',
+      comment: commentWithUser.toJSON()
+    });
+  } catch (error) {
+    console.error('Create edge comment error:', error);
+    res.status(500).json({ error: 'Failed to create comment' });
+  }
+});
+
+// Update edge comment
+router.put('/:boardId/edges/:edgeId/comments/:commentId', authenticateToken, requireBoardContributor, async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const { content } = req.body;
+    
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ error: 'Comment content is required' });
+    }
+    
+    const comment = await BoardEdgeComment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+    
+    // Only comment owner or board owner can update comment
+    if (comment.user_id !== req.user.id && req.board.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized to update this comment' });
+    }
+    
+    const updatedComment = await BoardEdgeComment.update(commentId, { content: content.trim() });
+    const commentWithUser = await BoardEdgeComment.findById(updatedComment.id);
+    
+    res.json({
+      message: 'Comment updated successfully',
+      comment: commentWithUser.toJSON()
+    });
+  } catch (error) {
+    console.error('Update edge comment error:', error);
+    res.status(500).json({ error: 'Failed to update comment' });
+  }
+});
+
+// Delete edge comment
+router.delete('/:boardId/edges/:edgeId/comments/:commentId', authenticateToken, requireBoardContributor, async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    
+    const comment = await BoardEdgeComment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+    
+    // Only comment owner or board owner can delete comment
+    if (comment.user_id !== req.user.id && req.board.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized to delete this comment' });
+    }
+    
+    await BoardEdgeComment.delete(commentId);
+    
+    res.json({ message: 'Comment deleted successfully' });
+  } catch (error) {
+    console.error('Delete edge comment error:', error);
+    res.status(500).json({ error: 'Failed to delete comment' });
   }
 });
 

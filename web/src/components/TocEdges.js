@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { ReactFlow, ReactFlowProvider, useReactFlow, useNodesState, useEdgesState, Handle, Position } from 'reactflow';
 import TocEdgesEditDialog from './TocEdgesEditDialog';
+import CustomEdge from './CustomEdge';
 import { selectAllNodes, selectBoard } from '../store/selectors';
 import 'reactflow/dist/style.css';
 
@@ -65,6 +66,20 @@ const edgeInteractionStyles = `
     white-space: normal;
     text-align: center;
   }
+  
+  /* Comment indicator styles */
+  .reactflow-wrapper .comment-indicator {
+    transition: all 0.2s ease;
+  }
+  
+  .reactflow-wrapper .comment-indicator:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .reactflow-wrapper .comment-indicator:active {
+    transform: scale(0.95);
+  }
 `;
 
 // Inject styles
@@ -116,9 +131,14 @@ const nodeTypes = {
   invisibleWithHandles: InvisibleNodeWithHandles,
 };
 
+// Edge types for React Flow
+const edgeTypes = {
+  custom: CustomEdge,
+};
+
 
 // Internal component that has access to React Flow instance
-function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
+function TocEdgesInternal({ boardId, edges, onUpdateEdge, onDeleteEdge }) {
   // Get nodes and board from Redux
   const nodes = useSelector(selectAllNodes);
   const board = useSelector(selectBoard);
@@ -294,7 +314,7 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
         id: edge.id,
         source: edge.sourceId,
         target: edge.targetId,
-        type: 'straight',
+        type: 'custom',
         sourceHandle: 'right',
         targetHandle: 'left',
         label: edge.label || '',
@@ -319,6 +339,8 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
           type: edge.type,
           label: edge.label,
           color: getEdgeColor(edge.type),
+          commentCount: edge.commentCount || 0,
+          comments: edge.comments || [],
           onUpdate: onUpdateEdge,
           onDelete: onDeleteEdge,
           onEdit: setEditingEdge,
@@ -464,6 +486,7 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
         nodes={flowNodes}
         edges={flowEdges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         className="reactflow-wrapper"
         nodesDraggable={false}
         nodesConnectable={false}
@@ -512,6 +535,8 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
             targetNode={targetNode}
             sourceList={sourceList}
             targetList={targetList}
+            boardId={board?.id || boardId}
+            edgeId={editingEdge.id}
           />
         );
       })()}
@@ -520,7 +545,7 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
 }
 
 // Main component with ReactFlowProvider
-export default function TocEdges({ edges, onUpdateEdge, onDeleteEdge }) {
+export default function TocEdges({ boardId, edges, onUpdateEdge, onDeleteEdge }) {
   if (!edges || edges.length === 0) {
     return null;
   }
@@ -528,6 +553,7 @@ export default function TocEdges({ edges, onUpdateEdge, onDeleteEdge }) {
   return (
     <ReactFlowProvider>
       <TocEdgesInternal 
+        boardId={boardId}
         edges={edges} 
         onUpdateEdge={onUpdateEdge} 
         onDeleteEdge={onDeleteEdge} 

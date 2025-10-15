@@ -607,6 +607,7 @@ export default function TocBoard({ boardId = 'default' }) {
             </SortableContext>
             
             <TocEdges
+              boardId={boardId}
               edges={getFilteredEdges()}
               onUpdateEdge={updateEdge}
               onDeleteEdge={deleteEdge}
