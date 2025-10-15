@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { Dialog, DialogPanel, DialogTitle, Radio, RadioGroup, Tab, TabGroup, TabList, TabPanels, TabPanel } from '@headlessui/react';
+import { updateEdge } from '../store/boardSlice';
+import { useAuth } from '../context/AuthContext';
 import Button from './ui/Button';
 import Input from './ui/Input';
 
@@ -19,6 +22,8 @@ export default function TocEdgesEditDialog({
   boardId,
   edgeId
 }) {
+  const dispatch = useDispatch();
+  const { user: currentUser } = useAuth();
   const [label, setLabel] = useState(initialLabel);
   const [type, setType] = useState(initialType);
   const [comments, setComments] = useState([]);
@@ -79,8 +84,19 @@ export default function TocEdgesEditDialog({
     try {
       setCommentError(null);
       const { comment } = await (await import('../utils/boardsApi')).boardsApi.createEdgeComment(boardId, edgeId, content);
-      setComments(prev => [...prev, comment]);
+      const updatedComments = [...comments, comment];
+      setComments(updatedComments);
       setNewComment('');
+      
+      // Update Redux state to reflect new comment count
+      const openCommentsCount = updatedComments.filter(c => c.status !== 'solved').length;
+      dispatch(updateEdge({
+        edgeId: edgeId,
+        updates: {
+          comments: updatedComments,
+          commentCount: openCommentsCount
+        }
+      }));
     } catch (err) {
       setCommentError(err.message || 'Failed to add comment');
     }
@@ -247,8 +263,7 @@ export default function TocEdgesEditDialog({
                             <div className="text-xs text-gray-500">No comments yet.</div>
                           ) : (
                             comments.map((c) => {
-                              const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-                              const canToggleStatus = c.user_id === currentUser.id;
+                              const canToggleStatus = c.user_id === currentUser?.id;
                               const commentStatus = c.status || 'open';
                               
                               return (
@@ -263,7 +278,7 @@ export default function TocEdgesEditDialog({
                                   <div className="flex justify-between mb-1">
                                     <div className="flex items-center gap-2">
                                       <div className="text-xs text-gray-700 font-semibold">
-                                        {(c.user?.first_name || 'User') + (c.user?.last_name ? ` ${c.user.last_name}` : '')}
+                                        {c.user?.email || 'Unknown User'}
                                       </div>
                                       <span className={`text-xs px-2 py-0.5 rounded-full ${
                                         commentStatus === 'solved' 
@@ -285,7 +300,6 @@ export default function TocEdgesEditDialog({
                                         e.stopPropagation();
                                         try {
                                           const newStatus = commentStatus === 'solved' ? 'open' : 'solved';
-                                          console.log('Updating edge comment status:', c.id, 'from', commentStatus, 'to', newStatus);
                                           const { boardsApi } = await import('../utils/boardsApi');
                                           const result = await boardsApi.updateEdgeComment(
                                             boardId, 
@@ -293,12 +307,21 @@ export default function TocEdgesEditDialog({
                                             c.id, 
                                             { status: newStatus }
                                           );
-                                          console.log('Update result:', result);
                                           const updatedComment = result.comment;
-                                          console.log('Updated edge comment:', updatedComment);
-                                          setComments(prev => prev.map(comment => 
+                                          const updatedComments = comments.map(comment => 
                                             comment.id === c.id ? { ...comment, ...updatedComment } : comment
-                                          ));
+                                          );
+                                          setComments(updatedComments);
+                                          
+                                          // Update Redux state to reflect new comment count
+                                          const openCommentsCount = updatedComments.filter(c => c.status !== 'solved').length;
+                                          dispatch(updateEdge({
+                                            edgeId: edgeId,
+                                            updates: {
+                                              comments: updatedComments,
+                                              commentCount: openCommentsCount
+                                            }
+                                          }));
                                         } catch (error) {
                                           console.error('Error updating comment status:', error);
                                           setCommentError('Failed to update comment status');

@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Dialog, DialogPanel, DialogTitle, TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/react';
 import { selectAllEdges } from '../store/selectors';
+import { updateNode } from '../store/boardSlice';
+import { useAuth } from '../context/AuthContext';
 import TocNodeTagEditor from './TocNodeTagEditor';
 import Button from './ui/Button';
 import Input from './ui/Input';
@@ -23,6 +25,8 @@ export default function TocNodeEditDialog({
 }) {
   // Get edges from Redux instead of props
   const edges = useSelector(selectAllEdges);
+  const dispatch = useDispatch();
+  const { user: currentUser } = useAuth();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -107,8 +111,19 @@ export default function TocNodeEditDialog({
     setSubmittingComment(true);
     try {
       const data = await boardsApi.createNodeComment(board.id, node.id, newComment);
-      setComments(prev => [...prev, data.comment]);
+      const updatedComments = [...comments, data.comment];
+      setComments(updatedComments);
       setNewComment('');
+      
+      // Update Redux state to reflect new comment count
+      const openCommentsCount = updatedComments.filter(c => c.status !== 'solved').length;
+      dispatch(updateNode({
+        nodeId: node.id,
+        updates: {
+          comments: updatedComments,
+          commentCount: openCommentsCount
+        }
+      }));
     } catch (error) {
       console.error('Error adding comment:', error);
       alert('Failed to add comment. Please try again.');
@@ -432,8 +447,7 @@ export default function TocNodeEditDialog({
                       <div className="text-center text-gray-500 py-4">No comments yet</div>
                     ) : (
                       comments.map((comment) => {
-                        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-                        const canToggleStatus = comment.user_id === currentUser.id || board.owner_id === currentUser.id;
+                        const canToggleStatus = comment.user_id === currentUser?.id || board?.owner_id === currentUser?.id;
                         const commentStatus = comment.status || 'open';
                         
                         return (
@@ -466,19 +480,27 @@ export default function TocNodeEditDialog({
                                   e.stopPropagation();
                                   try {
                                     const newStatus = commentStatus === 'solved' ? 'open' : 'solved';
-                                    console.log('Updating comment status:', comment.id, 'from', commentStatus, 'to', newStatus);
                                     const result = await boardsApi.updateNodeComment(
                                       board.id, 
                                       node.id, 
                                       comment.id, 
                                       { status: newStatus }
                                     );
-                                    console.log('Update result:', result);
                                     const updatedComment = result.comment;
-                                    console.log('Updated comment:', updatedComment);
-                                    setComments(prev => prev.map(c => 
+                                    const updatedComments = comments.map(c => 
                                       c.id === comment.id ? { ...c, ...updatedComment } : c
-                                    ));
+                                    );
+                                    setComments(updatedComments);
+                                    
+                                    // Update Redux state to reflect new comment count
+                                    const openCommentsCount = updatedComments.filter(c => c.status !== 'solved').length;
+                                    dispatch(updateNode({
+                                      nodeId: node.id,
+                                      updates: {
+                                        comments: updatedComments,
+                                        commentCount: openCommentsCount
+                                      }
+                                    }));
                                   } catch (error) {
                                     console.error('Error updating comment status:', error);
                                     alert('Failed to update comment status');
