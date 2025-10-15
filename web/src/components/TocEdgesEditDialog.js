@@ -429,7 +429,6 @@ export default function TocEdgesEditDialog({
                 )}  
 
                 {/* Assumptions Tab */}
-
                 {(canEdit || (assumptions.length > 0)) && (
                   <TabPanel>
                   <div className="space-y-3">

@@ -4,10 +4,16 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 // Helper function to get auth headers
 const getAuthHeaders = () => {
   const token = localStorage.getItem('accessToken');
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
+  const headers = {
+    'Content-Type': 'application/json'
   };
+  
+  // Only add Authorization header if token exists
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
 };
 
 // Handle API errors

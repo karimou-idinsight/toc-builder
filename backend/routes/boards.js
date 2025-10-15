@@ -9,11 +9,13 @@ import BoardNodeComment from '../models/BoardNodeComment.js';
 import BoardEdgeComment from '../models/BoardEdgeComment.js';
 import BoardEdgeAssumption from '../models/BoardEdgeAssumption.js';
 import { 
-  authenticateToken, 
+  authenticateToken,
+  optionalAuth,
   requireBoardOwner,
   requireBoardEditor,
   requireBoardReviewer,
   requireBoardViewer,
+  allowPublicBoardViewer,
   requireEmailVerification,
   rateLimit 
 } from '../middleware/auth.js';
@@ -72,19 +74,26 @@ router.post('/', authenticateToken, requireEmailVerification, async (req, res) =
 });
 
 // Get full board data (board + lists + nodes + edges) - MUST come before /:boardId
-router.get('/:boardId/data', authenticateToken, requireBoardViewer, async (req, res) => {
+// Allows unauthenticated access to public boards
+router.get('/:boardId/data', optionalAuth, allowPublicBoardViewer, async (req, res) => {
   try {
-    // req.board is set by requireBoardViewer middleware
+    // req.board is set by allowPublicBoardViewer middleware
     const boardData = await req.board.getFullBoardData();
     
     if (!boardData) {
       return res.status(404).json({ error: 'Board data not found' });
     }
     
-    // Get user's role on this board
-    console.log('Getting user role for board:', req.board.id, 'user:', req.user.id);
-    const userRole = await BoardPermission.getUserRole(req.board.id, req.user.id);
-    console.log('User role retrieved:', userRole);
+    // Get user's role on this board (or 'viewer' for unauthenticated users on public boards)
+    let userRole = 'viewer'; // Default for unauthenticated users on public boards
+    
+    if (req.user) {
+      console.log('Getting user role for board:', req.board.id, 'user:', req.user.id);
+      userRole = await BoardPermission.getUserRole(req.board.id, req.user.id);
+      console.log('User role retrieved:', userRole);
+    } else {
+      console.log('Unauthenticated user accessing public board:', req.board.id);
+    }
     
     // Add user role to response
     const response = {
@@ -741,8 +750,8 @@ router.delete('/:boardId/edges/:edgeId/comments/:commentId', authenticateToken, 
 // Edge Assumptions Routes
 // ============================================
 
-// Get all assumptions for an edge
-router.get('/:boardId/edges/:edgeId/assumptions', authenticateToken, requireBoardViewer, async (req, res) => {
+// Get all assumptions for an edge (public boards allow unauthenticated access)
+router.get('/:boardId/edges/:edgeId/assumptions', optionalAuth, allowPublicBoardViewer, async (req, res) => {
   try {
     const { edgeId } = req.params;
     

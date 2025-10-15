@@ -55,7 +55,7 @@ const optionalAuth = async (req, res, next) => {
   }
 };
 
-// Board permission middleware
+// Board permission middleware (requires authentication)
 const requireBoardPermission = (requiredRole) => {
   return async (req, res, next) => {
     try {
@@ -86,6 +86,61 @@ const requireBoardPermission = (requiredRole) => {
   };
 };
 
+// Board permission middleware that allows public access for viewer role
+const allowPublicBoardAccess = (requiredRole) => {
+  return async (req, res, next) => {
+    try {
+      const boardId = req.params.boardId || req.body.boardId;
+
+      if (!boardId) {
+        return res.status(400).json({ error: 'Board ID required' });
+      }
+
+      const board = await Board.findById(boardId);
+      if (!board) {
+        return res.status(404).json({ error: 'Board not found' });
+      }
+
+      // If user is authenticated, check their permissions normally
+      if (req.user) {
+        const hasPermission = await board.hasPermission(req.user.id, requiredRole);
+        if (!hasPermission) {
+          return res.status(403).json({ 
+            error: `Insufficient permissions. Required: ${requiredRole}` 
+          });
+        }
+      } else {
+        // User is not authenticated - check if board is public and role is viewer
+        if (!board.is_public) {
+          return res.status(401).json({ 
+            error: 'Authentication required for private boards' 
+          });
+        }
+        
+        // Only allow viewer access for unauthenticated users
+        const roleHierarchy = {
+          'owner': 4,
+          'editor': 3,
+          'reviewer': 2,
+          'viewer': 1
+        };
+        
+        if (roleHierarchy[requiredRole] > roleHierarchy['viewer']) {
+          return res.status(401).json({ 
+            error: 'Authentication required for this action' 
+          });
+        }
+      }
+
+      req.board = board;
+      next();
+    } catch (error) {
+      console.error('Permission check error:', error);
+      return res.status(500).json({ error: 'Permission check failed' });
+    }
+  };
+};
+
 // Board ownership middleware
 const requireBoardOwner = requireBoardPermission('owner');
 
@@ -97,6 +152,9 @@ const requireBoardReviewer = requireBoardPermission('reviewer');
 
 // Board viewer middleware (can only view)
 const requireBoardViewer = requireBoardPermission('viewer');
+
+// Public board viewer middleware (allows unauthenticated access to public boards)
+const allowPublicBoardViewer = allowPublicBoardAccess('viewer');
 
 // Backward compatibility alias
 const requireBoardContributor = requireBoardPermission('editor');
@@ -194,6 +252,7 @@ export {
   requireBoardContributor, // Backward compatibility
   requireBoardReviewer,
   requireBoardViewer,
+  allowPublicBoardViewer,
   requireSuperAdmin,
   rateLimit,
   requireEmailVerification,

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
+import { useAuth } from '../context/AuthContext';
 import { tocToolbarStyles } from '../styles/TocToolbar.styles';
 import { selectBoard } from '../store/selectors';
 import TocTagSelector from './TocTagSelector';
@@ -18,6 +19,7 @@ export default function TocToolbar({
   boardId
 }) {
   const router = useRouter();
+  const { user } = useAuth();
   // Get board from Redux instead of props
   const board = useSelector(selectBoard);
   const [isClient, setIsClient] = useState(false);
@@ -66,7 +68,7 @@ export default function TocToolbar({
   return (
     <div style={tocToolbarStyles.container}>
       <div>
-        {boardId && boardId !== 'default' && (
+        {user && boardId && boardId !== 'default' && (
           <button
             onClick={() => router.push('/boards')}
             style={{

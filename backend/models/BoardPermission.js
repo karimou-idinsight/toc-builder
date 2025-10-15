@@ -117,18 +117,28 @@ class BoardPermission {
   // Get user's role on board
   static async getUserRole(boardId, userId) {
     // Check permissions table
-    const query = `
+    const permissionQuery = `
       SELECT role FROM board_permissions 
       WHERE board_id = $1 AND user_id = $2
     `;
     
-    const result = await pool.query(query, [boardId, userId]);
+    const result = await pool.query(permissionQuery, [boardId, userId]);
     
-    if (result.rows.length === 0) {
-      return null;
+    // If user has explicit permission, return it
+    if (result.rows.length > 0) {
+      return result.rows[0].role;
     }
     
-    return result.rows[0].role;
+    // If no explicit permission, check if board is public
+    const { default: Board } = await import('./Board.js');
+    const board = await Board.findById(boardId);
+    
+    if (board && board.is_public) {
+      // Public boards grant viewer access to any authenticated user
+      return 'viewer';
+    }
+    
+    return null;
   }
 
   // Get users with specific role on board

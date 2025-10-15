@@ -96,10 +96,12 @@ export default function TocBoard({ boardId = 'default' }) {
           // Fetch board data from server
           const backendData = await boardsApi.getBoardData(boardId);
           console.log('Backend data userRole:', backendData.userRole);
+          console.log('Backend edgeAssumptions:', backendData.edgeAssumptions);
           
           // Transform backend data to frontend format
           const transformedBoard = transformBoardData(backendData);
           console.log('Transformed board userRole:', transformedBoard.userRole);
+          console.log('Transformed board edges with assumptions:', transformedBoard.edges.filter(e => e.assumptions?.length > 0));
           
           // Initialize board in Redux store
           dispatch(initializeBoard(transformedBoard));

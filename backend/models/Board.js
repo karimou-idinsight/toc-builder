@@ -205,12 +205,6 @@ class Board {
     
     const result = await pool.query(query, [this.id, userId]);
     
-    if (result.rows.length === 0) {
-      return false;
-    }
-
-    const userRole = result.rows[0].role;
-    
     // Define role hierarchy
     const roleHierarchy = {
       'owner': 4,
@@ -218,8 +212,20 @@ class Board {
       'reviewer': 2,
       'viewer': 1
     };
-
-    return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
+    
+    // If user has an explicit permission, check it
+    if (result.rows.length > 0) {
+      const userRole = result.rows[0].role;
+      return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
+    }
+    
+    // If user has no explicit permission, check if board is public
+    // Public boards automatically grant viewer access to any authenticated user
+    if (this.is_public && roleHierarchy[requiredRole] <= roleHierarchy['viewer']) {
+      return true;
+    }
+    
+    return false;
   }
 
   // Get board permissions
