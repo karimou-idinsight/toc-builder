@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { useSelector } from 'react-redux';
+import { selectCanEdit, selectCanComment } from '../store/selectors';
 import { tocNodeStyles } from '../styles/TocNode.styles';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowsAlt, faEdit, faLink, faCopy, faProjectDiagram, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -18,6 +20,11 @@ export default function TocNodeFooter({
   isCausalPathFocalNode,
   setHoveredButton
 }) {
+  const canEdit = useSelector(selectCanEdit);
+  const canComment = useSelector(selectCanComment);
+  console.log('canEdit', canEdit);
+  console.log('canComment', canComment);
+
   const handleCausalPathClick = () => {
     if (causalPathMode && isCausalPathFocalNode) {
       onExitCausalPathMode();
@@ -36,62 +43,71 @@ export default function TocNodeFooter({
       zIndex: 1000,
       opacity: 1
     }}>
-      <button
-        style={{
-          ...tocNodeStyles.actionButton,
-          opacity: 1,
-          background: hoveredButton === 'move' ? '#f3f4f6' : 'transparent',
-          border: 'none'
-        }}
-        title="Move Node"
-        onClick={onMoveNode}
-        onMouseEnter={() => setHoveredButton('move')}
-        onMouseLeave={() => setHoveredButton(null)}
-      >
-        <FontAwesomeIcon icon={faArrowsAlt} />
-      </button>
-      <button
-        style={{
-          ...tocNodeStyles.actionButton,
-          opacity: 1,
-          background: hoveredButton === 'edit-ctx' ? '#f3f4f6' : 'transparent',
-          border: 'none'
-        }}
-        title="Edit"
-        onClick={onEdit}
-        onMouseEnter={() => setHoveredButton('edit-ctx')}
-        onMouseLeave={() => setHoveredButton(null)}
-      >
-        <FontAwesomeIcon icon={faEdit} />
-      </button>
-      <button
-        style={{
-          ...tocNodeStyles.actionButton,
-          opacity: 1,
-          background: hoveredButton === 'link' ? '#f3f4f6' : 'transparent',
-          border: 'none'
-        }}
-        title="Draw Arrow"
-        onClick={onStartLinking}
-        onMouseEnter={() => setHoveredButton('link')}
-        onMouseLeave={() => setHoveredButton(null)}
-      >
-        <FontAwesomeIcon icon={faLink} />
-      </button>
-      <button
-        style={{
-          ...tocNodeStyles.actionButton,
-          opacity: 1,
-          background: hoveredButton === 'duplicate-ctx' ? '#f3f4f6' : 'transparent',
-          border: 'none'
-        }}
-        title="Duplicate"
-        onClick={onDuplicate}
-        onMouseEnter={() => setHoveredButton('duplicate-ctx')}
-        onMouseLeave={() => setHoveredButton(null)}
-      >
-        <FontAwesomeIcon icon={faCopy} />
-      </button>
+      {canEdit && (
+        <button
+          style={{
+            ...tocNodeStyles.actionButton,
+            opacity: 1,
+            background: hoveredButton === 'move' ? '#f3f4f6' : 'transparent',
+            border: 'none'
+          }}
+          title="Move Node"
+          onClick={onMoveNode}
+          onMouseEnter={() => setHoveredButton('move')}
+          onMouseLeave={() => setHoveredButton(null)}
+        >
+          <FontAwesomeIcon icon={faArrowsAlt} />
+        </button>
+      )}
+      {(canEdit || canComment) && (
+        <button
+          style={{
+            ...tocNodeStyles.actionButton,
+            opacity: 1,
+            background: hoveredButton === 'edit-ctx' ? '#f3f4f6' : 'transparent',
+            border: 'none'
+          }}
+          title="Edit"
+          onClick={onEdit}
+          onMouseEnter={() => setHoveredButton('edit-ctx')}
+          onMouseLeave={() => setHoveredButton(null)}
+        >
+          <FontAwesomeIcon icon={faEdit} />
+        </button>
+      )}
+      {canEdit && (
+        <button
+          style={{
+            ...tocNodeStyles.actionButton,
+            opacity: 1,
+            background: hoveredButton === 'link' ? '#f3f4f6' : 'transparent',
+            border: 'none'
+          }}
+          title="Draw Arrow"
+          onClick={onStartLinking}
+          onMouseEnter={() => setHoveredButton('link')}
+          onMouseLeave={() => setHoveredButton(null)}
+        >
+          <FontAwesomeIcon icon={faLink} />
+        </button>
+      )}
+      {canEdit && (
+        <button
+          style={{
+            ...tocNodeStyles.actionButton,
+            opacity: 1,
+            background: hoveredButton === 'duplicate-ctx' ? '#f3f4f6' : 'transparent',
+            border: 'none'
+          }}
+          title="Duplicate"
+          onClick={onDuplicate}
+          onMouseEnter={() => setHoveredButton('duplicate-ctx')}
+          onMouseLeave={() => setHoveredButton(null)}
+        >
+          <FontAwesomeIcon icon={faCopy} />
+        </button>
+      )}
+      {/* Causal Path is available to all users */}
       <button
         style={{
           ...tocNodeStyles.actionButton,
@@ -107,21 +123,23 @@ export default function TocNodeFooter({
       >
         <FontAwesomeIcon icon={faProjectDiagram} />
       </button>
-      <button
-        style={{
-          ...tocNodeStyles.actionButton,
-          ...tocNodeStyles.contextMenuItemDanger,
-          opacity: 1,
-          background: hoveredButton === 'delete-ctx' ? '#f3f4f6' : 'transparent',
-          border: 'none'
-        }}
-        title="Delete"
-        onClick={onDelete}
-        onMouseEnter={() => setHoveredButton('delete-ctx')}
-        onMouseLeave={() => setHoveredButton(null)}
-      >
-        <FontAwesomeIcon icon={faTrash} />
-      </button>
+      {canEdit && (
+        <button
+          style={{
+            ...tocNodeStyles.actionButton,
+            ...tocNodeStyles.contextMenuItemDanger,
+            opacity: 1,
+            background: hoveredButton === 'delete-ctx' ? '#f3f4f6' : 'transparent',
+            border: 'none'
+          }}
+          title="Delete"
+          onClick={onDelete}
+          onMouseEnter={() => setHoveredButton('delete-ctx')}
+          onMouseLeave={() => setHoveredButton(null)}
+        >
+          <FontAwesomeIcon icon={faTrash} />
+        </button>
+      )}
     </div>
   );
 }

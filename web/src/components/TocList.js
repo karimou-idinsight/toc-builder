@@ -17,7 +17,8 @@ import {
   selectCausalPathNodesSet,
   selectCausalPathFocalNode,
   selectAllNodes,
-  selectBoard
+  selectBoard,
+  selectCanEdit
 } from '../store/selectors';
 
 export default function TocList({
@@ -47,6 +48,7 @@ export default function TocList({
   const causalPathFocalNode = useSelector(selectCausalPathFocalNode);
   const allNodes = useSelector(selectAllNodes);
   const board = useSelector(selectBoard);
+  
   // local UI state
   const [hoveredButton, setHoveredButton] = useState(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);

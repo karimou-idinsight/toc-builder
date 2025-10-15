@@ -44,3 +44,35 @@ export const selectTagFilterNodesSet = createSelector(
   [selectTagFilterNodes],
   (nodes) => new Set(nodes)
 );
+
+// Permission selectors
+export const selectUserRole = createSelector(
+  [selectBoard],
+  (board) => {
+    console.log('selectUserRole - board:', board);
+    console.log('selectUserRole - board.userRole:', board?.userRole);
+    return board?.userRole || 'viewer';
+  }
+);
+
+export const selectCanEdit = createSelector(
+  [selectUserRole],
+  (userRole) => {
+    const roleHierarchy = { owner: 4, editor: 3, reviewer: 2, viewer: 1 };
+    return (roleHierarchy[userRole] || 0) >= roleHierarchy.editor;
+  }
+);
+
+export const selectCanComment = createSelector(
+  [selectUserRole],
+  (userRole) => {
+    const roleHierarchy = { owner: 4, editor: 3, reviewer: 2, viewer: 1 };
+    console.log('userRole', userRole);
+    return (roleHierarchy[userRole] || 0) >= roleHierarchy.reviewer;
+  }
+);
+
+export const selectIsOwner = createSelector(
+  [selectUserRole],
+  (userRole) => userRole === 'owner'
+);

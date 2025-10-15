@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Dialog, DialogPanel, DialogTitle, Radio, RadioGroup, Tab, TabGroup, TabList, TabPanels, TabPanel } from '@headlessui/react';
 import { updateEdge } from '../store/boardSlice';
 import { useAuth } from '../context/AuthContext';
 import Button from './ui/Button';
 import Input from './ui/Input';
+import { selectCanEdit, selectCanComment } from '../store/selectors';
 
 export default function TocEdgesEditDialog({ 
   isOpen, 
@@ -36,6 +37,9 @@ export default function TocEdgesEditDialog({
   const [newAssumptionStrength, setNewAssumptionStrength] = useState('medium');
   const [assumptionError, setAssumptionError] = useState(null);
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+
+  const canEdit = useSelector(selectCanEdit);
+  const canComment = useSelector(selectCanComment);
 
   useEffect(() => {
     setLabel(initialLabel);
@@ -163,68 +167,78 @@ export default function TocEdgesEditDialog({
             Edit Connection
           </DialogTitle>
           
-                  {/* Tabs + Scrollable content */}
-                  <div className="flex flex-col gap-3 flex-1 min-h-0">
-                    <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
-                      <TabList className="flex gap-2 border-b border-gray-200 mb-2">
-                        <Tab
-                          className={({ selected }) => `px-3 py-2 font-semibold cursor-pointer border-b-2 focus:outline-none ${
-                            selected ? 'border-b-blue-500 text-gray-900' : 'border-b-transparent text-gray-500'
-                          }`}
-                        >
-                          Details
-                        </Tab>
-                        <Tab
-                          className={({ selected }) => `px-3 py-2 font-semibold cursor-pointer border-b-2 focus:outline-none ${
-                            selected ? 'border-b-blue-500 text-gray-900' : 'border-b-transparent text-gray-500'
-                          }`}
-                        >
-                          Comments {comments.filter(c => c.status !== 'solved').length > 0 && `(${comments.filter(c => c.status !== 'solved').length})`}
-                        </Tab>
-                        <Tab
-                          className={({ selected }) => `px-3 py-2 font-semibold cursor-pointer border-b-2 focus:outline-none ${
-                            selected ? 'border-b-blue-500 text-gray-900' : 'border-b-transparent text-gray-500'
-                          }`}
-                        >
-                          Assumptions {assumptions.length > 0 && `(${assumptions.length})`}
-                        </Tab>
-                      </TabList>
+          {/* Tabs + Scrollable content */}
+          <div className="flex flex-col gap-3 flex-1 min-h-0">
 
-                      <div className="flex-1 min-h-0 overflow-y-auto pr-1">
-                        <TabPanels>
-                          <TabPanel>
-                    {/* Connection Info */}
-                    {sourceNode && targetNode && (
-                      <div className="mb-5 p-3 bg-gray-50 rounded-md border border-gray-200">
-                        <div className="text-xs font-semibold text-gray-500 mb-2">
-                          Connection Path
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="flex-1">
-                            <div className="font-semibold text-gray-700 mb-0.5">
-                              {sourceNode.title}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {sourceList?.name || 'Unknown List'}
-                            </div>
-                          </div>
-                          <div className="text-gray-400">
-                            <svg width="24" height="16" viewBox="0 0 24 16" fill="none">
-                              <path d="M1 8H23M23 8L16 1M23 8L16 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-semibold text-gray-700 mb-0.5">
-                              {targetNode.title}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {targetList?.name || 'Unknown List'}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+            {/* Connection Info */}
+            {sourceNode && targetNode && (
+              <div className="mb-5 p-3 bg-gray-50 rounded-md border border-gray-200">
+                <div className="text-xs font-semibold text-gray-500 mb-2">
+                  Connection Path
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-700 mb-0.5">
+                      {sourceNode.title}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {sourceList?.name || 'Unknown List'}
+                    </div>
+                  </div>
+                  <div className="text-gray-400">
+                    <svg width="24" height="16" viewBox="0 0 24 16" fill="none">
+                      <path d="M1 8H23M23 8L16 1M23 8L16 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-700 mb-0.5">
+                      {targetNode.title}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {targetList?.name || 'Unknown List'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
+            <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
+              <TabList className="flex gap-2 border-b border-gray-200 mb-2">
+
+                {canEdit && (
+                <Tab
+                  className={({ selected }) => `px-3 py-2 font-semibold cursor-pointer border-b-2 focus:outline-none ${
+                    selected ? 'border-b-blue-500 text-gray-900' : 'border-b-transparent text-gray-500'
+                  }`}
+                >
+                  Details
+                </Tab>
+                )}
+                {canComment && (
+                <Tab
+                  className={({ selected }) => `px-3 py-2 font-semibold cursor-pointer border-b-2 focus:outline-none ${
+                    selected ? 'border-b-blue-500 text-gray-900' : 'border-b-transparent text-gray-500'
+                  }`}
+                >
+                  Comments {comments.filter(c => c.status !== 'solved').length > 0 && `(${comments.filter(c => c.status !== 'solved').length})`}
+                </Tab>
+                )}
+
+                {(canEdit || (assumptions.length > 0)) && (
+                <Tab
+                  className={({ selected }) => `px-3 py-2 font-semibold cursor-pointer border-b-2 focus:outline-none ${
+                    selected ? 'border-b-blue-500 text-gray-900' : 'border-b-transparent text-gray-500'
+                  }`}
+                >
+                  Assumptions {assumptions.length > 0 && `(${assumptions.length})`}
+                </Tab>
+                )}
+              </TabList>
+
+              <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+                <TabPanels>
+                {canEdit && (
+                  <TabPanel>
                     {/* Label Input */}
                     <div className="mb-5">
                       <label htmlFor="edge-label" className="block text-sm font-medium mb-2">
@@ -298,9 +312,11 @@ export default function TocEdgesEditDialog({
                       }
                       </RadioGroup>
                     </div>
-                          </TabPanel>
+                  </TabPanel>
+                )}
+                {canComment && (
 
-                          <TabPanel>
+                  <TabPanel>
                     <div>
                       <div className="text-sm font-semibold mb-2 text-gray-700">
                         Comments
@@ -311,7 +327,7 @@ export default function TocEdgesEditDialog({
                       {commentsLoading ? (
                         <div className="text-xs text-gray-500">Loading comments...</div>
                       ) : (
-                        <div className="border border-gray-200 rounded-md p-2 bg-gray-50">
+                        <div className="border border-gray-200 rounded-md p-2 bg-gray-50 max-h-96 overflow-y-auto">
                           {(!comments || comments.length === 0) ? (
                             <div className="text-xs text-gray-500">No comments yet.</div>
                           ) : (
@@ -410,123 +426,128 @@ export default function TocEdgesEditDialog({
                       </div>
                     </div>
                   </TabPanel>
+                )}  
 
-                  {/* Assumptions Tab */}
+                {/* Assumptions Tab */}
+
+                {(canEdit || (assumptions.length > 0)) && (
                   <TabPanel>
-                    <div className="space-y-3">
-                      {/* Assumptions List */}
-                      <div className="space-y-2">
-                        <div className="text-sm font-semibold text-gray-700 mb-2">
-                          Assumptions ({assumptions.length})
-                        </div>
-                        
-                        {assumptionError && (
-                          <div className="text-xs text-red-600 mb-2">{assumptionError}</div>
-                        )}
-                        
-                        {assumptionsLoading ? (
-                          <div className="text-xs text-gray-500 p-2">Loading assumptions...</div>
-                        ) : (
-                          <div className="border border-gray-200 rounded-md p-2 bg-gray-50">
-                            {(!assumptions || assumptions.length === 0) ? (
-                              <div className="text-xs text-gray-500">No assumptions yet.</div>
-                            ) : (
-                              assumptions.map((assumption) => {
-                                const canEdit = assumption.user_id === currentUser?.id || boardId; // Can be refined with board owner check
-                                
-                                // Strength badge colors
-                                const strengthColors = {
-                                  'weak': 'bg-red-100 text-red-800',
-                                  'medium': 'bg-yellow-100 text-yellow-800',
-                                  'strong': 'bg-green-100 text-green-800',
-                                  'evidence-backed': 'bg-blue-100 text-blue-800'
-                                };
-                                
-                                const strengthLabels = {
-                                  'weak': 'Weak',
-                                  'medium': 'Medium',
-                                  'strong': 'Strong',
-                                  'evidence-backed': 'Evidence-backed'
-                                };
-                                
-                                return (
-                                  <div 
-                                    key={assumption.id} 
-                                    className="p-2 rounded-md border border-gray-300 mb-2 last:mb-0 bg-white"
-                                  >
-                                    <div className="flex items-start justify-between mb-1">
-                                      <div className="flex items-center gap-2">
-                                        <div className="text-xs font-medium text-gray-700">
-                                          {assumption.user?.email || 'Unknown User'}
-                                        </div>
-                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${strengthColors[assumption.strength] || strengthColors.medium}`}>
-                                          {strengthLabels[assumption.strength] || 'Medium'}
-                                        </span>
+                  <div className="space-y-3">
+                    {/* Assumptions List */}
+                    <div className="space-y-2">
+                      
+                      {assumptionError && (
+                        <div className="text-xs text-red-600 mb-2">{assumptionError}</div>
+                      )}
+                      
+                      {assumptionsLoading ? (
+                        <div className="text-xs text-gray-500 p-2">Loading assumptions...</div>
+                      ) : (
+                        <div className="border border-gray-200 rounded-md p-2 bg-gray-50 max-h-96 overflow-y-auto">
+                          {(!assumptions || assumptions.length === 0) ? (
+                            <div className="text-xs text-gray-500">No assumptions yet.</div>
+                          ) : (
+                            assumptions.map((assumption) => {
+                              const canEdit = assumption.user_id === currentUser?.id || boardId; // Can be refined with board owner check
+                              
+                              // Strength badge colors
+                              const strengthColors = {
+                                'weak': 'bg-red-100 text-red-800',
+                                'medium': 'bg-yellow-100 text-yellow-800',
+                                'strong': 'bg-green-100 text-green-800',
+                                'evidence-backed': 'bg-blue-100 text-blue-800'
+                              };
+                              
+                              const strengthLabels = {
+                                'weak': 'Weak',
+                                'medium': 'Medium',
+                                'strong': 'Strong',
+                                'evidence-backed': 'Evidence-backed'
+                              };
+                              
+                              return (
+                                <div 
+                                  key={assumption.id} 
+                                  className="p-2 rounded-md border border-gray-300 mb-2 last:mb-0 bg-white"
+                                >
+                                  <div className="flex items-start justify-between mb-1">
+                                    <div className="flex items-center gap-2">
+                                      <div className="text-xs font-medium text-gray-700">
+                                        {assumption.user?.email || 'Unknown User'}
                                       </div>
-                                      <div className="text-xs text-gray-400">
-                                        {new Date(assumption.created_at || assumption.createdAt).toLocaleString()}
-                                      </div>
+                                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${strengthColors[assumption.strength] || strengthColors.medium}`}>
+                                        {strengthLabels[assumption.strength] || 'Medium'}
+                                      </span>
                                     </div>
-                                    <div className="text-sm text-gray-700 whitespace-pre-wrap">
-                                      {assumption.content}
+                                    <div className="text-xs text-gray-400">
+                                      {new Date(assumption.created_at || assumption.createdAt).toLocaleString()}
                                     </div>
                                   </div>
-                                );
-                              })
-                            )}
-                          </div>
-                        )}
-                      </div>
+                                  <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                                    {assumption.content}
+                                  </div>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      )}
+                    </div>
 
-                      {/* Add New Assumption */}
-                      <div className="border-t border-gray-200 pt-3 space-y-2">
-                        <div className="text-xs font-semibold text-gray-700 mb-2">
-                          Add New Assumption
+                    
+                    {/* Add New Assumption */}
+                    {canEdit && (
+                    <div className="border-t border-gray-200 pt-3 space-y-2">
+                      <div className="text-xs font-semibold text-gray-700 mb-2">
+                        Add New Assumption
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <textarea
+                          value={newAssumption}
+                          onChange={(e) => setNewAssumption(e.target.value)}
+                          placeholder="Enter assumption..."
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-blue-500 resize-y min-h-[60px]"
+                          rows={3}
+                        />
+                        
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs font-medium text-gray-700">
+                            Strength:
+                          </label>
+                          <select
+                            value={newAssumptionStrength}
+                            onChange={(e) => setNewAssumptionStrength(e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:border-blue-500"
+                          >
+                            <option value="weak">Weak</option>
+                            <option value="medium">Medium</option>
+                            <option value="strong">Strong</option>
+                            <option value="evidence-backed">Evidence-backed</option>
+                          </select>
                         </div>
                         
-                        <div className="space-y-2">
-                          <textarea
-                            value={newAssumption}
-                            onChange={(e) => setNewAssumption(e.target.value)}
-                            placeholder="Enter assumption..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-blue-500 resize-y min-h-[60px]"
-                            rows={3}
-                          />
-                          
-                          <div className="flex items-center gap-2">
-                            <label className="text-xs font-medium text-gray-700">
-                              Strength:
-                            </label>
-                            <select
-                              value={newAssumptionStrength}
-                              onChange={(e) => setNewAssumptionStrength(e.target.value)}
-                              className="px-2 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:border-blue-500"
-                            >
-                              <option value="weak">Weak</option>
-                              <option value="medium">Medium</option>
-                              <option value="strong">Strong</option>
-                              <option value="evidence-backed">Evidence-backed</option>
-                            </select>
-                          </div>
-                          
-                          <Button
-                            onClick={handleAddAssumption}
-                            disabled={!newAssumption.trim()}
-                            variant={newAssumption.trim() ? 'primary' : 'disabled'}
-                            className="w-full"
-                          >
-                            Add Assumption
-                          </Button>
-                        </div>
+                        <Button
+                          onClick={handleAddAssumption}
+                          disabled={!newAssumption.trim()}
+                          variant={newAssumption.trim() ? 'primary' : 'disabled'}
+                          className="w-full"
+                        >
+                          Add Assumption
+                        </Button>
                       </div>
                     </div>
+                    )}
+                  </div>
                   </TabPanel>
-                        </TabPanels>
-                      </div>
-                    </TabGroup>
+                )}
+                </TabPanels>
+              </div>
+            </TabGroup>
           </div>
 
           {/* Buttons */}
+          {canEdit && (
           <div className="flex justify-between items-center pt-4 border-t border-gray-200 mt-3">
             {/* Delete button on the left */}
             <Button onClick={handleDelete} variant="danger">
@@ -543,6 +564,7 @@ export default function TocEdgesEditDialog({
               </Button>
             </div>
           </div>
+          )}
 
         </DialogPanel>
       </div>

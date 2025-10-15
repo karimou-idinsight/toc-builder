@@ -21,8 +21,11 @@ import {
   selectCausalPathFocalNode,
   selectAllNodes,
   selectBoard,
-  selectAllLists
+  selectAllLists,
+  selectCanEdit,
+  selectCanComment
 } from '../store/selectors';
+
 
 export default function TocNode({
   node,
@@ -50,6 +53,10 @@ export default function TocNode({
   const board = useSelector(selectBoard);
   const allLists = useSelector(selectAllLists);
   
+  // Get permissions from Redux
+  const userCanEdit = useSelector(selectCanEdit);
+  const userCanComment = useSelector(selectCanComment);
+  
   // Get the list this node belongs to
   const nodeList = allLists.find(list => list.id === node.listId);
   const listColor = nodeList?.color || '#3b82f6'; // Default to blue if no list color
@@ -64,6 +71,8 @@ export default function TocNode({
   const [editDescription, setEditDescription] = useState(node.description);
   const [showDetails, setShowDetails] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  const canComment = useSelector(selectCanComment);
 
   // Notify edge redraw on hover change (node height change)
   useEffect(() => {
@@ -145,11 +154,13 @@ export default function TocNode({
   };
 
   const handleEditFromContext = () => {
+    if (!userCanEdit && !userCanComment) return;
     setShowContextMenu(false);
     setShowEditDialog(true);
   };
 
   const handleDuplicateFromContext = () => {
+    if (!userCanEdit) return;
     setShowContextMenu(false);
     onDuplicate(node.id);
   };
@@ -173,7 +184,7 @@ export default function TocNode({
 
   const handleDoubleClick = (e) => {
     e.stopPropagation();
-    if (!linkMode) {
+    if (!linkMode && userCanEdit) {
       setIsEditing(true);
     }
   };
@@ -266,7 +277,7 @@ export default function TocNode({
         )}
 
         {/* Comment indicator */}
-        {node.commentCount > 0 && (
+        {(node.commentCount > 0 && canComment) && (
           <div style={{
             position: 'absolute',
             top: '4px',
@@ -309,7 +320,7 @@ export default function TocNode({
               node={node}
               showDetails={showDetails}
               setShowDetails={setShowDetails}
-              onEdit={() => setIsEditing(true)}
+              onEdit={() => userCanEdit && setIsEditing(true)}
               onDuplicate={onDuplicate}
               onDelete={onDelete}
               onShowConnectionDetails={() => setShowDetails(!showDetails)}
@@ -318,6 +329,8 @@ export default function TocNode({
               isLinkSource={isLinkSource}
               hoveredButton={hoveredButton}
               setHoveredButton={setHoveredButton}
+              canEdit={userCanEdit}
+              canComment={userCanComment}
             />
             {(isHovered || (causalPathMode && isCausalPathFocalNode)) && (
               <TocNodeFooter
@@ -383,6 +396,8 @@ export default function TocNode({
         board={board}
         onAddEdge={onAddEdge}
         onDeleteEdge={onDeleteEdge}
+        canEdit={userCanEdit}
+        canComment={userCanComment}
       />
     </>
   );

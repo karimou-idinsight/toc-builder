@@ -4,6 +4,9 @@ import React from 'react';
 import { BaseEdge, EdgeLabelRenderer, getStraightPath } from 'reactflow';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faComment, faLightbulb } from '@fortawesome/free-solid-svg-icons';
+import { useSelector } from 'react-redux';
+import { selectCanComment } from '../store/selectors';
+ 
 
 export default function CustomEdge({
   id,
@@ -35,6 +38,8 @@ export default function CustomEdge({
   const hasAssumptions = data?.assumptions?.length > 0;
   const showIndicators = hasComments || hasAssumptions;
 
+  const canComment = useSelector(selectCanComment);
+
   return (
     <>
       <BaseEdge
@@ -59,7 +64,7 @@ export default function CustomEdge({
             }}
           >
             {/* Comment indicator */}
-            {hasComments && (
+            {(hasComments && canComment)&& (
               <div
                 className="comment-indicator"
                 style={{

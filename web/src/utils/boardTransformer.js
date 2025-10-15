@@ -28,7 +28,7 @@ export function transformBoardData(backendData) {
   }
 
   // Backend returns board data with lists/nodes/edges merged in, not separated
-  const { lists, nodes, edges, nodeComments, edgeComments, edgeAssumptions, ...boardFields } = backendData;
+  const { lists, nodes, edges, nodeComments, edgeComments, edgeAssumptions, userRole, ...boardFields } = backendData;
   const board = boardFields;
 
   // Validate required fields
@@ -160,6 +160,7 @@ export function transformBoardData(backendData) {
       autoLayout: true,
       theme: 'light'
     },
+    userRole: userRole || 'viewer', // Add user role to board data
     createdAt: board.created_at,
     updatedAt: board.updated_at
   };

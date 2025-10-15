@@ -81,7 +81,18 @@ router.get('/:boardId/data', authenticateToken, requireBoardViewer, async (req, 
       return res.status(404).json({ error: 'Board data not found' });
     }
     
-    res.json(boardData);
+    // Get user's role on this board
+    console.log('Getting user role for board:', req.board.id, 'user:', req.user.id);
+    const userRole = await BoardPermission.getUserRole(req.board.id, req.user.id);
+    console.log('User role retrieved:', userRole);
+    
+    // Add user role to response
+    const response = {
+      ...boardData,
+      userRole: userRole || 'viewer' // Default to viewer if no role found
+    };
+    console.log('Sending response with userRole:', response.userRole);
+    res.json(response);
   } catch (error) {
     console.error('Get board data error:', error);
     res.status(500).json({ error: 'Failed to get board data' });
@@ -358,21 +369,6 @@ router.get('/invitations/pending', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Get pending invitations error:', error);
     res.status(500).json({ error: 'Failed to get pending invitations' });
-  }
-});
-
-// ============================
-// Board Content Routes (Lists, Nodes, Edges)
-// ============================
-
-// Get full board data (lists, nodes, edges)
-router.get('/:boardId/data', authenticateToken, requireBoardViewer, async (req, res) => {
-  try {
-    const boardData = await req.board.getFullBoardData();
-    res.json({ board: boardData });
-  } catch (error) {
-    console.error('Get board data error:', error);
-    res.status(500).json({ error: 'Failed to get board data' });
   }
 });
 

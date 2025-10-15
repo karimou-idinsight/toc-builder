@@ -12,6 +12,7 @@ import Input from './ui/Input';
 import Textarea from './ui/Textarea';
 import { boardsApi } from '../utils/boardsApi';
 import { styles } from '../styles/TocNodeEditDialog.styles';
+import { selectCanEdit, selectCanComment } from '../store/selectors';
 
 export default function TocNodeEditDialog({
   isOpen,
@@ -57,6 +58,9 @@ export default function TocNodeEditDialog({
     });
     return Array.from(tagsSet).sort();
   }, [allNodes]);
+  
+  const canEdit = useSelector(selectCanEdit);
+  const canComment = useSelector(selectCanComment);
 
   // Initialize form data when dialog opens
   useEffect(() => {
@@ -283,13 +287,16 @@ export default function TocNodeEditDialog({
           
           <TabGroup>
             <TabList className="flex gap-2 border-b border-gray-200 mb-4">
-              <Tab className={({ selected }) => `px-4 py-2 text-sm font-medium border-b-2 transition-colors focus:outline-none ${
-                selected 
-                  ? 'border-blue-500 text-blue-600' 
-                  : 'border-transparent text-gray-600 hover:text-gray-800'
-              }`}>
-                Details
-              </Tab>
+              {canEdit && (
+                <Tab className={({ selected }) => `px-4 py-2 text-sm font-medium border-b-2 transition-colors focus:outline-none ${
+                  selected 
+                    ? 'border-blue-500 text-blue-600' 
+                    : 'border-transparent text-gray-600 hover:text-gray-800'
+                }`}>
+                  Details
+                </Tab>
+              )}
+              {canComment && (
               <Tab className={({ selected }) => `px-4 py-2 text-sm font-medium border-b-2 transition-colors focus:outline-none ${
                 selected 
                   ? 'border-blue-500 text-blue-600' 
@@ -297,10 +304,12 @@ export default function TocNodeEditDialog({
               }`}>
                 Comments {comments.filter(c => c.status !== 'solved').length > 0 && `(${comments.filter(c => c.status !== 'solved').length})`}
               </Tab>
+              )}
             </TabList>
 
             <TabPanels className="flex-1 overflow-y-auto">
               {/* Details Tab */}
+              {canEdit && (
               <TabPanel className="focus:outline-none">
                 {/* Node Name */}
                 <div style={styles.section}>
@@ -435,12 +444,13 @@ export default function TocNodeEditDialog({
                   />
                 </div>
               </TabPanel>
-
+              )}
               {/* Comments Tab */}
+              {canComment && (
               <TabPanel className="focus:outline-none">
                 <div className="space-y-4">
-                  {/* Comments List */}
-                  <div className="space-y-3">
+                  {/* Comments List - Scrollable */}
+                  <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                     {loadingComments ? (
                       <div className="text-center text-gray-500 py-4">Loading comments...</div>
                     ) : comments.length === 0 ? (
@@ -538,10 +548,12 @@ export default function TocNodeEditDialog({
                   </div>
                 </div>
               </TabPanel>
+              )}
             </TabPanels>
           </TabGroup>
 
           {/* Actions */}
+          {canEdit && (
           <div style={styles.actions} className="mt-4">
             <Button variant="secondary" onClick={onClose}>
               Cancel
@@ -554,6 +566,7 @@ export default function TocNodeEditDialog({
               Save Changes
             </Button>
           </div>
+          )}
         </DialogPanel>
       </div>
     </Dialog>
