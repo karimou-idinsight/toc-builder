@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { styles, getCreateNewTagOptionStyle, getExistingTagOptionStyle } from '../styles/TocNodeTagEditor.styles';
+// Removed styles import - now using Tailwind CSS classes
 
 export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -61,10 +61,10 @@ export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange
   };
 
   return (
-    <div ref={dropdownRef} style={styles.container}>
+    <div ref={dropdownRef} className="relative w-full">
       {/* Input container with selected tags */}
       <div
-        style={styles.inputContainer}
+        className="flex flex-wrap gap-1 items-center px-2 py-1.5 bg-white border border-gray-300 rounded-md min-h-[38px] cursor-text"
         onClick={() => {
           setIsOpen(true);
           inputRef.current?.focus();
@@ -74,7 +74,7 @@ export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange
         {tags.map(tag => (
           <span
             key={tag}
-            style={styles.selectedTag}
+            className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500 text-white rounded text-xs font-medium"
           >
             {tag}
             <button
@@ -82,7 +82,7 @@ export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange
                 e.stopPropagation();
                 handleRemoveTag(tag);
               }}
-              style={styles.removeTagButton}
+              className="bg-none border-none text-white cursor-pointer p-0 text-sm leading-none font-bold"
             >
               ×
             </button>
@@ -98,34 +98,28 @@ export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={tags.length === 0 ? "Add tags..." : ""}
-          style={styles.input}
+          className="flex-1 min-w-[100px] border-none outline-none text-sm bg-transparent"
         />
       </div>
 
       {/* Dropdown */}
       {isOpen && (searchTerm || filteredTags.length > 0 || isNewTag) && (
-        <div style={styles.dropdown}>
-          <div style={styles.dropdownContent}>
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-dropdown z-[1000] max-h-[250px] overflow-hidden flex flex-col">
+          <div className="overflow-y-auto max-h-[250px]">
             {/* Create new tag option */}
             {isNewTag && (
               <div
                 onClick={() => handleAddTag(searchTerm.trim())}
-                style={styles.createNewTagOption}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = styles.createNewTagOptionHover.backgroundColor;
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = styles.createNewTagOption.backgroundColor;
-                }}
+                className="flex items-center p-2.5 cursor-pointer bg-blue-50 border-b border-blue-200 hover:bg-blue-100 transition-colors"
               >
-                <div style={styles.createNewTagIcon}>
+                <div className="w-5 h-5 mr-2 bg-blue-500 rounded flex items-center justify-center text-white text-base font-bold">
                   +
                 </div>
                 <div>
-                  <div style={styles.createNewTagText}>
+                  <div className="text-sm font-medium text-blue-700">
                     Create "{searchTerm.trim()}"
                   </div>
-                  <div style={styles.createNewTagSubtext}>
+                  <div className="text-xs text-gray-500">
                     Press Enter or click to create new tag
                   </div>
                 </div>
@@ -136,7 +130,7 @@ export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange
             {filteredTags.length > 0 && (
               <>
                 {isNewTag && (
-                  <div style={styles.existingTagsSection}>
+                  <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase bg-gray-50 border-b border-gray-100">
                     Existing Tags
                   </div>
                 )}
@@ -144,16 +138,10 @@ export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange
                   <div
                     key={tag}
                     onClick={() => handleAddTag(tag)}
-                    style={styles.existingTagOption}
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = styles.existingTagOptionHover.backgroundColor;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = styles.existingTagOption.backgroundColor;
-                    }}
+                    className="flex items-center p-2 cursor-pointer bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors"
                   >
-                    <div style={styles.existingTagIndicator} />
-                    <span style={styles.existingTagText}>{tag}</span>
+                    <div className="w-1.5 h-1.5 mr-2.5 bg-blue-500 rounded-full" />
+                    <span className="text-sm text-gray-700">{tag}</span>
                   </div>
                 ))}
               </>
@@ -161,7 +149,7 @@ export default function TocNodeTagEditor({ tags = [], allTags = [], onTagsChange
 
             {/* No results */}
             {!isNewTag && filteredTags.length === 0 && searchTerm && (
-              <div style={styles.noResults}>
+              <div className="p-3 text-center text-gray-400 text-sm">
                 No matching tags found
               </div>
             )}

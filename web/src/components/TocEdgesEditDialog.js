@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogPanel, DialogTitle, Radio, RadioGroup, Tab, TabGroup, TabList, TabPanels, TabPanel } from '@headlessui/react';
-import { styles, getTabButtonStyle, getRadioButtonStyle, getRadioCircleStyle, getAddCommentButtonStyle } from '../styles/TocEdgesEditDialog.styles';
+// Removed styles import - now using Tailwind CSS classes
 
 export default function TocEdgesEditDialog({ 
   isOpen, 
@@ -93,68 +93,61 @@ export default function TocEdgesEditDialog({
   ];
 
   return (
-    <Dialog open={isOpen} onClose={onClose} style={styles.dialog}>
-      {/* Backdrop */}
-      <div 
-        style={styles.backdrop}
-        aria-hidden="true" 
-      />
-      
-      {/* Full-screen container to center the dialog */}
-      <div style={styles.container}>
-        <DialogPanel style={styles.dialogPanel}>
-          <DialogTitle style={styles.title}>
+    <Dialog open={isOpen} onClose={onClose}>
+      <div className="dialog-overlay">
+        <DialogPanel className="dialog-panel">
+          <DialogTitle className="dialog-title">
             Edit Connection
           </DialogTitle>
           
                   {/* Tabs + Scrollable content */}
-                  <div style={styles.tabsContainer}>
+                  <div className="flex flex-col gap-3 flex-1 min-h-0">
                     <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
-                      <TabList style={styles.tabList}>
-                        <Tab>
-                          {({ selected }) => (
-                            <button style={getTabButtonStyle(selected)}>
-                              Details
-                            </button>
-                          )}
+                      <TabList className="flex gap-2 border-b border-gray-200 mb-2">
+                        <Tab
+                          className={({ selected }) => `px-3 py-2 font-semibold cursor-pointer border-b-2 focus:outline-none ${
+                            selected ? 'border-b-blue-500 text-gray-900' : 'border-b-transparent text-gray-500'
+                          }`}
+                        >
+                          Details
                         </Tab>
-                        <Tab>
-                          {({ selected }) => (
-                            <button style={getTabButtonStyle(selected)}>
-                              Comments
-                            </button>
-                          )}
+                        <Tab
+                          className={({ selected }) => `px-3 py-2 font-semibold cursor-pointer border-b-2 focus:outline-none ${
+                            selected ? 'border-b-blue-500 text-gray-900' : 'border-b-transparent text-gray-500'
+                          }`}
+                        >
+                          Comments
                         </Tab>
                       </TabList>
 
-                      <div style={styles.tabPanelsContainer}>
+                      <div className="flex-1 min-h-0 overflow-y-auto pr-1">
                         <TabPanels>
                           <TabPanel>
                     {/* Connection Info */}
                     {sourceNode && targetNode && (
-                      <div style={styles.connectionInfo}>
-                        <div style={styles.connectionInfoLabel}>
+                      <div className="mb-5 p-3 bg-gray-50 rounded-md border border-gray-200">
+                        <div className="text-xs font-semibold text-gray-500 mb-2">
                           Connection Path
                         </div>
-                        <div style={styles.connectionInfoContent}>
-                          <div style={styles.connectionNode}>
-                            <div style={styles.connectionNodeTitle}>
+                        <div className="flex items-center gap-2 text-sm">
+                          <div className="flex-1">
+                            <div className="font-semibold text-gray-700 mb-0.5">
                               {sourceNode.title}
                             </div>
-                            <div style={styles.connectionNodeList}>
+                            <div className="text-xs text-gray-500">
                               {sourceList?.name || 'Unknown List'}
                             </div>
                           </div>
-                          <div style={styles.connectionArrow}>
+                          <div className="text-gray-400">
                             <svg width="24" height="16" viewBox="0 0 24 16" fill="none">
                               <path d="M1 8H23M23 8L16 1M23 8L16 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                           </div>
-                          <div style={styles.connectionNode}>
-                            <div style={styles.connectionNodeTitle}>
+                          <div className="flex-1">
+                            <div className="font-semibold text-gray-700 mb-0.5">
                               {targetNode.title}
                             </div>
-                            <div style={styles.connectionNodeList}>
+                            <div className="text-xs text-gray-500">
                               {targetList?.name || 'Unknown List'}
                             </div>
                           </div>
@@ -163,8 +156,8 @@ export default function TocEdgesEditDialog({
                     )}
 
                     {/* Label Input */}
-                    <div style={styles.labelContainer}>
-                      <label htmlFor="edge-label" style={styles.labelLabel}>
+                    <div className="mb-5">
+                      <label htmlFor="edge-label" className="block text-sm font-medium mb-2">
                         Label (optional)
                       </label>
                       <input
@@ -172,34 +165,42 @@ export default function TocEdgesEditDialog({
                         type="text"
                         value={label}
                         onChange={(e) => setLabel(e.target.value)}
-                        style={styles.labelInput}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         placeholder="Enter connection label..."
                       />
                     </div>
 
                     {/* Edge Type Selection */}
-                    <div style={styles.edgeTypeContainer}>
-                      <label style={styles.edgeTypeLabel}>
+                    <div className="mb-2">
+                      <label className="block text-sm font-medium mb-3">
                         Connection Type
                       </label>
-                      <RadioGroup value={type} onChange={setType} style={styles.edgeTypeRadioGroup}>
+                      <RadioGroup value={type} onChange={setType} className="flex flex-col gap-2">
                         {edgeTypes.map((edgeType) => (
                           <Radio
                             key={edgeType.value}
                             value={edgeType.value}
-                            style={getRadioButtonStyle(type === edgeType.value)}
+                            className={`flex items-center p-3 rounded-md cursor-pointer border-2 ${
+                              type === edgeType.value 
+                                ? 'border-blue-500 bg-blue-50' 
+                                : 'border-gray-200 bg-white'
+                            }`}
                           >
                             {({ checked }) => (
-                              <div style={styles.radioContent}>
-                                <div style={styles.radioLeft}>
-                                  <div style={styles.radioIndicator}>
-                                    <div style={getRadioCircleStyle(checked)}>
+                              <div className="flex w-full items-center justify-between">
+                                <div className="flex items-center">
+                                  <div className="mr-3">
+                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                      checked 
+                                        ? 'border-blue-500 bg-blue-500' 
+                                        : 'border-gray-300 bg-transparent'
+                                    }`}>
                                       {checked && (
-                                        <div style={styles.radioDot} />
+                                        <div className="w-1.5 h-1.5 bg-white rounded-full" />
                                       )}
                                     </div>
                                   </div>
-                                  <div style={styles.radioLabel}>
+                                  <div className="text-sm font-medium">
                                     {edgeType.label}
                                   </div>
                                 </div>
@@ -230,50 +231,54 @@ export default function TocEdgesEditDialog({
                     </div>
                           </TabPanel>
 
-                    <TabPanel>
-                    <div style={styles.commentsContainer}>
-                      <div style={styles.commentsTitle}>
+                          <TabPanel>
+                    <div>
+                      <div className="text-sm font-semibold mb-2 text-gray-700">
                         Comments
                       </div>
                       {commentError && (
-                        <div style={styles.commentError}>{commentError}</div>
+                        <div className="mb-2 text-red-500 text-xs">{commentError}</div>
                       )}
                       {commentsLoading ? (
-                        <div style={styles.commentsLoading}>Loading comments...</div>
+                        <div className="text-xs text-gray-500">Loading comments...</div>
                       ) : (
-                        <div style={styles.commentsList}>
+                        <div className="border border-gray-200 rounded-md p-2 bg-gray-50">
                           {(!comments || comments.length === 0) ? (
-                            <div style={styles.noComments}>No comments yet.</div>
+                            <div className="text-xs text-gray-500">No comments yet.</div>
                           ) : (
                             comments.map((c) => (
-                              <div key={c.id} style={styles.commentItem}>
-                                <div style={styles.commentHeader}>
-                                  <div style={styles.commentAuthor}>
+                              <div key={c.id} className="p-2 bg-white rounded-md border border-gray-200 mb-2">
+                                <div className="flex justify-between mb-1">
+                                  <div className="text-xs text-gray-700 font-semibold">
                                     {(c.user?.first_name || 'User') + (c.user?.last_name ? ` ${c.user.last_name}` : '')}
                                   </div>
-                                  <div style={styles.commentDate}>
+                                  <div className="text-xs text-gray-400">
                                     {new Date(c.created_at || c.createdAt).toLocaleString()}
                                   </div>
                                 </div>
-                                <div style={styles.commentContent}>{c.content}</div>
+                                <div className="text-sm text-gray-700 whitespace-pre-wrap">{c.content}</div>
                               </div>
                             ))
                           )}
                         </div>
                       )}
 
-                      <div style={styles.addCommentForm}>
+                      <div className="mt-2.5 flex gap-2">
                         <input
                           type="text"
                           value={newComment}
                           onChange={(e) => setNewComment(e.target.value)}
                           placeholder="Add a comment..."
-                          style={styles.addCommentInput}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
                         />
                         <button
                           onClick={handleAddComment}
                           disabled={!newComment.trim()}
-                          style={getAddCommentButtonStyle(!!newComment.trim())}
+                          className={`px-3 py-2 text-white border-none rounded-md text-sm ${
+                            newComment.trim() 
+                              ? 'bg-blue-500 cursor-pointer hover:bg-blue-600' 
+                              : 'bg-blue-300 cursor-not-allowed'
+                          }`}
                         >
                           Add
                         </button>
@@ -286,32 +291,26 @@ export default function TocEdgesEditDialog({
           </div>
 
           {/* Buttons */}
-          <div style={styles.actionButtonsContainer}>
+          <div className="flex justify-between items-center pt-4 border-t border-gray-200 mt-3">
             {/* Delete button on the left */}
             <button
               onClick={handleDelete}
-              style={styles.deleteButton}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = styles.deleteButtonHover.backgroundColor;
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = styles.deleteButton.backgroundColor;
-              }}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-500 border-none rounded-md cursor-pointer hover:bg-red-600 transition-colors"
             >
               Delete Connection
             </button>
             
             {/* Cancel and Save buttons on the right */}
-            <div style={styles.actionButtonsGroup}>
+            <div className="flex gap-3">
               <button
                 onClick={handleCancel}
-                style={styles.cancelButton}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                style={styles.saveButton}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-500 border-none rounded-md cursor-pointer hover:bg-blue-600 transition-colors"
               >
                 Save Changes
               </button>

@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { Dialog } from '@headlessui/react';
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { selectAllEdges } from '../store/selectors';
 import TocNodeTagEditor from './TocNodeTagEditor';
-import { styles, getInputStyle, getAddButtonStyle, getSaveButtonStyle, getCancelButtonStyle } from '../styles/TocNodeEditDialog.styles';
+import { styles } from '../styles/TocNodeEditDialog.styles';
 
 export default function TocNodeEditDialog({
   isOpen,
@@ -216,9 +216,9 @@ export default function TocNodeEditDialog({
 
   return (
     <Dialog open={isOpen} onClose={onClose}>
-      <div style={styles.overlay}>
-        <Dialog.Panel style={styles.dialog}>
-          <Dialog.Title style={styles.title}>Edit Node</Dialog.Title>
+      <div className="dialog-overlay">
+        <DialogPanel className="dialog-panel">
+          <DialogTitle className="dialog-title">Edit Node</DialogTitle>
           
           {/* Node Name */}
           <div style={styles.section}>
@@ -376,7 +376,7 @@ export default function TocNodeEditDialog({
               Save Changes
             </button>
           </div>
-        </Dialog.Panel>
+        </DialogPanel>
       </div>
     </Dialog>
   );
