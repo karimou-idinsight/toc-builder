@@ -153,7 +153,8 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            disabled={isLoading || loading}
+            // disabled={isLoading || loading}
+            disabled={true}
             style={{
               ...styles.button,
               ...(isLoading || loading ? styles.buttonDisabled : {})

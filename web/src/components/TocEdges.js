@@ -521,9 +521,7 @@ function TocEdgesInternal({ edges, onUpdateEdge, onDeleteEdge }) {
 
 // Main component with ReactFlowProvider
 export default function TocEdges({ edges, onUpdateEdge, onDeleteEdge }) {
-  console.log('TocEdges rendered with:', { edges: edges?.length });
   if (!edges || edges.length === 0) {
-    console.log('No edges to render');
     return null;
   }
 

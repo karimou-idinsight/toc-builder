@@ -88,23 +88,18 @@ export default function TocBoard({ boardId = 'default' }) {
         if (!boardId || boardId === 'default') {
           // If no boardId provided, use dummy data for now
           const initialBoard = createBoard();
-          console.log('Using dummy board data:', initialBoard);
           dispatch(initializeBoard(initialBoard));
         } else {
           // Fetch board data from server
-          console.log('Fetching board data for ID:', boardId);
           const backendData = await boardsApi.getBoardData(boardId);
-          console.log('Backend data received:', backendData);
           
           // Transform backend data to frontend format
           const transformedBoard = transformBoardData(backendData);
-          console.log('Transformed board data:', transformedBoard);
           
           // Initialize board in Redux store
           dispatch(initializeBoard(transformedBoard));
         }
       } catch (err) {
-        console.error('Error loading board:', err);
         setError(err.message || 'Failed to load board');
       } finally {
         setLoading(false);

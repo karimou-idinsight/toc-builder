@@ -5,11 +5,11 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 
 export default function ProtectedRoute({ children, requireAuth = true, requireSuperAdmin = false }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isSuperAdmin } = useAuth();
   const router = useRouter();
   const hasRedirected = useRef(false);
 
-  const userIsSuperAdmin = user?.role === 'super_admin';
+  const userIsSuperAdmin = isSuperAdmin();
   useEffect(() => {
     // Reset redirect flag when path changes
     hasRedirected.current = false;

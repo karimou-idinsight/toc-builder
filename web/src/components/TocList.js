@@ -63,10 +63,6 @@ export default function TocList({
     return () => window.removeEventListener('keydown', onEsc);
   }, [isModalOpen]);
 
-  // Debug modal state changes
-  useEffect(() => {
-    console.log('Modal state changed:', isModalOpen);
-  }, [isModalOpen]);
 
   // drag-and-drop
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
