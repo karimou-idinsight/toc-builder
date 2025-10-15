@@ -74,6 +74,15 @@ export function transformBoardData(backendData) {
     nodesMap.set(node.id, node);
   });
 
+  // Create a map of node comments by node ID for quick lookup
+  const nodeCommentsMap = new Map();
+  (nodeComments || []).forEach(comment => {
+    if (!nodeCommentsMap.has(comment.node_id)) {
+      nodeCommentsMap.set(comment.node_id, []);
+    }
+    nodeCommentsMap.get(comment.node_id).push(comment);
+  });
+
   // Transform nodes to frontend format
   const transformedNodes = [];
   
@@ -97,7 +106,9 @@ export function transformBoardData(backendData) {
         size: { width: 200, height: 100 }, // Default size
         collapsed: false,
         createdAt: backendNode.created_at,
-        updatedAt: backendNode.updated_at
+        updatedAt: backendNode.updated_at,
+        comments: nodeCommentsMap.get(backendNode.id) || [],
+        commentCount: (nodeCommentsMap.get(backendNode.id) || []).length
       });
     });
   });

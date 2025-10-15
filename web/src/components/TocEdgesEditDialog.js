@@ -117,7 +117,7 @@ export default function TocEdgesEditDialog({
                             selected ? 'border-b-blue-500 text-gray-900' : 'border-b-transparent text-gray-500'
                           }`}
                         >
-                          Comments
+                          Comments {comments.length > 0 && `(${comments.length})`}
                         </Tab>
                       </TabList>
 

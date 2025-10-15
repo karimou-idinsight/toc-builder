@@ -4,6 +4,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faComment } from '@fortawesome/free-solid-svg-icons';
 import { tocNodeStyles } from '../styles/TocNode.styles';
 import { tocToolbarStyles } from '../styles/TocToolbar.styles';
 import TocNodeEditForm from './TocNodeEditForm';
@@ -18,7 +20,8 @@ import {
   selectCausalPathNodesSet,
   selectCausalPathFocalNode,
   selectAllNodes,
-  selectBoard
+  selectBoard,
+  selectAllLists
 } from '../store/selectors';
 
 export default function TocNode({
@@ -45,6 +48,11 @@ export default function TocNode({
   const causalPathFocalNode = useSelector(selectCausalPathFocalNode);
   const allNodes = useSelector(selectAllNodes);
   const board = useSelector(selectBoard);
+  const allLists = useSelector(selectAllLists);
+  
+  // Get the list this node belongs to
+  const nodeList = allLists.find(list => list.id === node.listId);
+  const listColor = nodeList?.color || '#3b82f6'; // Default to blue if no list color
   
   // Computed values
   const isLinkSource = linkSource === node.id;
@@ -255,6 +263,32 @@ export default function TocNode({
         {/* Draggable indicator */}
         {isDraggable && (
           <div style={tocNodeStyles.draggableIndicator} />
+        )}
+
+        {/* Comment indicator */}
+        {node.commentCount > 0 && (
+          <div style={{
+            position: 'absolute',
+            top: '4px',
+            right: '4px',
+            backgroundColor: listColor,
+            color: 'white',
+            borderRadius: '50%',
+            width: '20px',
+            height: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '10px',
+            fontWeight: '600',
+            border: '2px solid white',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+            zIndex: 1,
+          }}
+          title={`${node.commentCount} comment${node.commentCount > 1 ? 's' : ''}`}
+          >
+            <FontAwesomeIcon icon={faComment} style={{ fontSize: '10px' }} />
+          </div>
         )}
 
       <div style={tocNodeStyles.content}>

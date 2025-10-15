@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { BaseEdge, EdgeLabelRenderer, getStraightPath } from 'reactflow';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faComment } from '@fortawesome/free-solid-svg-icons';
 
 export default function CustomEdge({
   id,
@@ -46,7 +48,7 @@ export default function CustomEdge({
               transform: `translate(-50%, -50%) translate(${commentX}px,${commentY}px)`,
               fontSize: 12,
               pointerEvents: 'all',
-              zIndex: 10,
+              zIndex: 1,
             }}
           >
             <div
@@ -55,7 +57,7 @@ export default function CustomEdge({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: '#3b82f6',
+                backgroundColor: '#6b7280',
                 color: 'white',
                 borderRadius: '50%',
                 width: '20px',
@@ -68,7 +70,7 @@ export default function CustomEdge({
               }}
               title={`${data.commentCount} comment${data.commentCount > 1 ? 's' : ''}`}
             >
-              💬
+              <FontAwesomeIcon icon={faComment} style={{ fontSize: '10px' }} />
             </div>
           </div>
         </EdgeLabelRenderer>
