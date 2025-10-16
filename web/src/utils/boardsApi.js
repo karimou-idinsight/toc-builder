@@ -130,6 +130,15 @@ export const boardsApi = {
     return handleResponse(response);
   },
 
+  // Search users (for adding to boards)
+  async searchUsers(query, limit = 10) {
+    const response = await fetch(`${API_URL}/api/users/search?q=${encodeURIComponent(query)}&limit=${limit}`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
+
   // Get full board data (board + lists + nodes + edges)
   async getBoardData(boardId) {
     const response = await fetch(`${API_URL}/api/boards/${boardId}/data`, {
