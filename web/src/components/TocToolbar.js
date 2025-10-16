@@ -5,8 +5,9 @@ import { useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 import { tocToolbarStyles } from '../styles/TocToolbar.styles';
-import { selectBoard } from '../store/selectors';
+import { selectBoard, selectCanEdit } from '../store/selectors';
 import TocTagSelector from './TocTagSelector';
+
 
 export default function TocToolbar({
   linkMode,
@@ -24,6 +25,7 @@ export default function TocToolbar({
   const board = useSelector(selectBoard);
   const [isClient, setIsClient] = useState(false);
   const [hoveredButton, setHoveredButton] = useState(null);
+  const canEdit = useSelector(selectCanEdit);
 
   useEffect(() => {
     setIsClient(true);
@@ -103,38 +105,42 @@ export default function TocToolbar({
             selectedTags={selectedTags}
             onTagsChange={onTagsChange}
           />
-          
-          {linkMode ? (
-            <button
-              style={getButtonStyle('danger')}
-              onClick={onExitLinkMode}
-              onMouseEnter={() => setHoveredButton('exitLink')}
-              onMouseLeave={() => setHoveredButton(null)}
-              title="Exit link mode"
-            >
-              Exit Link Mode
-            </button>
-          ) : (
-            <button
-              style={getButtonStyle('link')}
-              onClick={onStartLinkMode}
-              onMouseEnter={() => setHoveredButton('link')}
-              onMouseLeave={() => setHoveredButton(null)}
-              title="Start connecting nodes"
-            >
-              Connect Nodes
-            </button>
-          )}
+          {canEdit && (
+            <>
+              {linkMode ? (
+                <button
+                  style={getButtonStyle('danger')}
+                  onClick={onExitLinkMode}
+                  onMouseEnter={() => setHoveredButton('exitLink')}
+                  onMouseLeave={() => setHoveredButton(null)}
+                  title="Exit link mode"
+                >
+                  Exit Link Mode
+                </button>
+              ) : (
+                <button
+                  style={getButtonStyle('link')}
+                  onClick={onStartLinkMode}
+                  onMouseEnter={() => setHoveredButton('link')}
+                  onMouseLeave={() => setHoveredButton(null)}
+                  title="Start connecting nodes"
+                >
+                  Connect Nodes
+                </button>
+              )}
 
-          <button
-            style={getButtonStyle('intermediate')}
-            onClick={onAddIntermediateOutcome}
-            onMouseEnter={() => setHoveredButton('intermediate')}
-            onMouseLeave={() => setHoveredButton(null)}
-            title="Add intermediate outcome stage"
-          >
-            + Add Intermediate Outcome
-          </button>
+              <button
+                style={getButtonStyle('intermediate')}
+                onClick={onAddIntermediateOutcome}
+                onMouseEnter={() => setHoveredButton('intermediate')}
+                onMouseLeave={() => setHoveredButton(null)}
+                title="Add intermediate outcome stage"
+              >
+                + Add Intermediate Outcome
+              </button>
+            </>
+          )}
+          
         </div>
 
       </div>
