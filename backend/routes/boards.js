@@ -16,7 +16,6 @@ import {
   requireBoardReviewer,
   requireBoardViewer,
   allowPublicBoardViewer,
-  requireEmailVerification,
   rateLimit 
 } from '../middleware/auth.js';
 
@@ -46,7 +45,7 @@ router.get('/public', async (req, res) => {
 });
 
 // Create new board
-router.post('/', authenticateToken, requireEmailVerification, async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
     const { title, description, is_public = false, settings = {} } = req.body;
     

@@ -293,31 +293,9 @@ router.post('/reset-password', rateLimit(15 * 60 * 1000, 5), async (req, res) =>
   }
 });
 
-// Verify email
+// Verify email (disabled - users are verified by default)
 router.post('/verify-email', async (req, res) => {
-  try {
-    const { token } = req.body;
-    
-    if (!token) {
-      return res.status(400).json({ error: 'Verification token required' });
-    }
-    
-    const user = await User.findByEmailVerificationToken(token);
-    
-    if (!user) {
-      return res.status(400).json({ 
-        error: 'Invalid verification token' 
-      });
-    }
-    
-    await user.verifyEmail();
-    
-    res.json({ message: 'Email verified successfully' });
-    
-  } catch (error) {
-    console.error('Email verification error:', error);
-    res.status(500).json({ error: 'Email verification failed' });
-  }
+  return res.json({ message: 'Email verification is not required at this time.' });
 });
 
 export default router;

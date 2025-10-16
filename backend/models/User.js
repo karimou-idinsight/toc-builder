@@ -29,16 +29,14 @@ class User {
     const saltRounds = 12;
     const password_hash = await bcrypt.hash(password, saltRounds);
     
-    // Generate email verification token
-    const email_verification_token = crypto.randomBytes(32).toString('hex');
-    
+    // For now, default users to verified and skip email verification token
     const query = `
-      INSERT INTO users (email, password_hash, first_name, last_name, avatar_url, email_verification_token)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO users (email, password_hash, first_name, last_name, avatar_url, email_verified, email_verification_token)
+      VALUES ($1, $2, $3, $4, $5, true, NULL)
       RETURNING *
     `;
     
-    const values = [email, password_hash, first_name, last_name, avatar_url, email_verification_token];
+    const values = [email, password_hash, first_name, last_name, avatar_url];
     const result = await pool.query(query, values);
     
     return new User(result.rows[0]);

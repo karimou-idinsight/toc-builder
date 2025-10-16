@@ -167,7 +167,7 @@ function UsersManagementContent() {
                         </span>
                       </td>
                       <td style={styles.tableCell}>
-                        {user.email_verified ? '✅' : '❌'}
+                        {user.email_verified ? '✅' : '—'}
                       </td>
                       <td style={styles.tableCell}>
                         {new Date(user.created_at).toLocaleDateString()}

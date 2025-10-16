@@ -255,7 +255,7 @@ export {
   allowPublicBoardViewer,
   requireSuperAdmin,
   rateLimit,
-  requireEmailVerification,
+  // requireEmailVerification removed: users are considered verified by default
   generateToken,
   generateRefreshToken
 };

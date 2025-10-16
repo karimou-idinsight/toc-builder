@@ -2,7 +2,6 @@ import express from 'express';
 import User from '../models/User.js';
 import { 
   authenticateToken, 
-  requireEmailVerification,
   rateLimit 
 } from '../middleware/auth.js';
 
@@ -21,7 +20,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
 });
 
 // Update user profile
-router.put('/profile', authenticateToken, requireEmailVerification, async (req, res) => {
+router.put('/profile', authenticateToken, async (req, res) => {
   try {
     const { first_name, last_name, avatar_url } = req.body;
     
@@ -48,7 +47,7 @@ router.put('/profile', authenticateToken, requireEmailVerification, async (req, 
 });
 
 // Change password
-router.put('/change-password', authenticateToken, requireEmailVerification, async (req, res) => {
+router.put('/change-password', authenticateToken, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     
@@ -83,7 +82,7 @@ router.put('/change-password', authenticateToken, requireEmailVerification, asyn
 });
 
 // Deactivate account
-router.delete('/account', authenticateToken, requireEmailVerification, async (req, res) => {
+router.delete('/account', authenticateToken, async (req, res) => {
   try {
     const { password } = req.body;
     
@@ -137,7 +136,7 @@ router.get('/search', authenticateToken, rateLimit(60 * 1000, 20), async (req, r
       SELECT id, email, first_name, last_name, avatar_url
       FROM users
       WHERE is_active = true 
-        AND email_verified = true
+        AND (email_verified = true OR email_verified = false OR email_verified IS NULL)
         AND (
           email ILIKE $1 OR 
           first_name ILIKE $1 OR 
