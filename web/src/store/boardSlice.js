@@ -10,7 +10,7 @@ const initialState = {
   draggableNodes: [],
   causalPathMode: false,
   causalPathNodes: [],
-  causalPathFocalNode: null,
+  causalPathFocalNodes: [],
   tagFilterMode: false,
   selectedTags: [],
   tagFilterNodes: [],
@@ -236,13 +236,31 @@ const boardSlice = createSlice({
       state.causalPathNodes = action.payload;
     },
 
+    // Focal nodes (multiple supported)
     setCausalPathFocalNode: (state, action) => {
-      state.causalPathFocalNode = action.payload;
+      // Backward compatibility: set single focal node -> replace with single-item array
+      state.causalPathFocalNodes = typeof action.payload === 'undefined' || action.payload === null
+        ? []
+        : [action.payload];
+    },
+    setCausalPathFocalNodes: (state, action) => {
+      state.causalPathFocalNodes = Array.isArray(action.payload) ? action.payload : [];
+    },
+    addCausalPathFocalNode: (state, action) => {
+      const nodeId = action.payload;
+      if (nodeId == null) return;
+      if (!state.causalPathFocalNodes.includes(nodeId)) {
+        state.causalPathFocalNodes.push(nodeId);
+      }
+    },
+    removeCausalPathFocalNode: (state, action) => {
+      const nodeId = action.payload;
+      state.causalPathFocalNodes = state.causalPathFocalNodes.filter(id => id !== nodeId);
     },
 
     clearCausalPath: (state) => {
       state.causalPathNodes = [];
-      state.causalPathFocalNode = null;
+      state.causalPathFocalNodes = [];
       state.causalPathMode = false;
     },
 
@@ -291,6 +309,9 @@ export const {
   setCausalPathMode,
   setCausalPathNodes,
   setCausalPathFocalNode,
+  setCausalPathFocalNodes,
+  addCausalPathFocalNode,
+  removeCausalPathFocalNode,
   clearCausalPath,
   setSelectedTags,
   setTagFilterMode,

@@ -37,6 +37,9 @@ import {
   setCausalPathMode,
   setCausalPathNodes,
   setCausalPathFocalNode,
+  addCausalPathFocalNode,
+  removeCausalPathFocalNode,
+  setCausalPathFocalNodes,
   clearCausalPath,
   setSelectedTags,
   setTagFilterMode,
@@ -50,7 +53,7 @@ import {
   selectDraggableNodesSet,
   selectCausalPathMode,
   selectCausalPathNodesSet,
-  selectCausalPathFocalNode,
+  selectCausalPathFocalNodes,
   selectAllNodes,
   selectAllEdges,
   selectSelectedTags,
@@ -73,7 +76,7 @@ export default function TocBoard({ boardId = 'default' }) {
   const draggableNodes = useSelector(selectDraggableNodesSet);
   const causalPathMode = useSelector(selectCausalPathMode);
   const causalPathNodes = useSelector(selectCausalPathNodesSet);
-  const causalPathFocalNode = useSelector(selectCausalPathFocalNode);
+  const causalPathFocalNodes = useSelector(selectCausalPathFocalNodes);
   const activeId = useSelector(state => state.board.activeId);
   const dragType = useSelector(state => state.board.dragType);
   const allNodes = useSelector(selectAllNodes);
@@ -338,21 +341,64 @@ export default function TocBoard({ boardId = 'default' }) {
   // Causal path mode functions
   const enterCausalPathMode = useCallback((nodeId) => {
     const connectedNodes = getAllConnectedNodes(nodeId);
-    dispatch(setCausalPathNodes(Array.from(connectedNodes)));
-    dispatch(setCausalPathFocalNode(nodeId));
+    let result;
+    if (causalPathMode && causalPathNodes && causalPathNodes.size > 0) {
+      // Intersection of existing set and the new connected set
+      result = new Set([...connectedNodes].filter(id => causalPathNodes.has(id)));
+    } else {
+      result = new Set(connectedNodes);
+    }
+    // Always include focal nodes themselves for visibility
+    result.add(nodeId);
+    dispatch(setCausalPathNodes(Array.from(result)));
+    dispatch(addCausalPathFocalNode(nodeId));
+    const wasActive = causalPathMode;
     dispatch(setCausalPathMode(true));
-    
-    // Scroll to top when entering causal path mode
-    setTimeout(() => {
-      if (boardInnerRef.current) {
-        boardInnerRef.current.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-      }
-    }, 0);
-  }, [getAllConnectedNodes, dispatch]);
 
-  const exitCausalPathMode = useCallback(() => {
+    if (!wasActive) {
+      setTimeout(() => {
+        if (boardInnerRef.current) {
+          boardInnerRef.current.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+        }
+      }, 0);
+    }
+  }, [getAllConnectedNodes, dispatch, causalPathMode, causalPathNodes]);
+
+  // Remove a focal node; recompute intersection; exit mode only when none remain
+  const removeCausalFocal = useCallback((nodeId) => {
+    const current = Array.isArray(causalPathFocalNodes) ? causalPathFocalNodes : [];
+    const nextFocals = current.filter(id => id !== nodeId);
+    if (nextFocals.length === 0) {
+      dispatch(clearCausalPath());
+      return;
+    }
+    // Intersect connected sets of all remaining focal nodes
+    let intersection = null;
+    nextFocals.forEach(fid => {
+      const setForFocal = getAllConnectedNodes(fid);
+      if (intersection === null) {
+        intersection = new Set(setForFocal);
+      } else {
+        intersection = new Set([...intersection].filter(x => setForFocal.has(x)));
+      }
+    });
+    // Always include the focal nodes themselves
+    nextFocals.forEach(fid => intersection.add(fid));
+    dispatch(setCausalPathFocalNodes(nextFocals));
+    dispatch(setCausalPathNodes(Array.from(intersection)));
+    dispatch(setCausalPathMode(true));
+  }, [causalPathFocalNodes, getAllConnectedNodes, dispatch]);
+
+  const exitCausalPathMode = useCallback((nodeId) => {
+    // If a nodeId is provided, remove only that focal and recompute
+    if (typeof nodeId !== 'undefined' && nodeId !== null) {
+      // Delegate to single-focal removal helper
+      removeCausalFocal(nodeId);
+      return;
+    }
+    // No node provided -> clear all
     dispatch(clearCausalPath());
-  }, [dispatch]);
+  }, [dispatch, removeCausalFocal]);
 
   // Tag filtering functions
   const getAllTags = useCallback(() => {
@@ -627,6 +673,8 @@ export default function TocBoard({ boardId = 'default' }) {
         onTagsChange={handleTagsChange}
         allTags={getAllTags()}
         boardId={boardId}
+        onExitCausalMode={() => exitCausalPathMode()}
+        showExitCausal={Boolean(causalPathMode && Array.isArray(causalPathFocalNodes) && causalPathFocalNodes.length > 0)}
       />
 
       <div style={tocBoardStyles.content}>

@@ -26,6 +26,7 @@ export default function TocNodeFooter({
   console.log('canComment', canComment);
 
   const handleCausalPathClick = () => {
+    // In multi-focal mode: clicking when focal toggles this node only
     if (causalPathMode && isCausalPathFocalNode) {
       onExitCausalPathMode();
     } else {

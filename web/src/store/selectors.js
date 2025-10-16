@@ -7,7 +7,7 @@ export const selectLinkSource = (state) => state.board.linkSource;
 export const selectDraggableNodes = (state) => state.board.draggableNodes;
 export const selectCausalPathMode = (state) => state.board.causalPathMode;
 export const selectCausalPathNodes = (state) => state.board.causalPathNodes;
-export const selectCausalPathFocalNode = (state) => state.board.causalPathFocalNode;
+export const selectCausalPathFocalNodes = (state) => state.board.causalPathFocalNodes || [];
 
 // Derived selectors for board data
 export const selectAllNodes = createSelector(
@@ -33,6 +33,11 @@ export const selectDraggableNodesSet = createSelector(
 
 export const selectCausalPathNodesSet = createSelector(
   [selectCausalPathNodes],
+  (nodes) => new Set(nodes)
+);
+
+export const selectCausalPathFocalNodesSet = createSelector(
+  [selectCausalPathFocalNodes],
   (nodes) => new Set(nodes)
 );
 

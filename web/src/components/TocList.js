@@ -15,7 +15,6 @@ import {
   selectDraggableNodesSet,
   selectCausalPathMode,
   selectCausalPathNodesSet,
-  selectCausalPathFocalNode,
   selectAllNodes,
   selectBoard,
   selectCanEdit
@@ -45,7 +44,6 @@ export default function TocList({
   const draggableNodes = useSelector(selectDraggableNodesSet);
   const causalPathMode = useSelector(selectCausalPathMode);
   const causalPathNodes = useSelector(selectCausalPathNodesSet);
-  const causalPathFocalNode = useSelector(selectCausalPathFocalNode);
   const allNodes = useSelector(selectAllNodes);
   const board = useSelector(selectBoard);
   

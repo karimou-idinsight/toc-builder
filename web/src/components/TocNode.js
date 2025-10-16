@@ -18,7 +18,7 @@ import {
   selectLinkSource,
   selectCausalPathMode,
   selectCausalPathNodesSet,
-  selectCausalPathFocalNode,
+  selectCausalPathFocalNodes,
   selectAllNodes,
   selectBoard,
   selectAllLists,
@@ -48,7 +48,7 @@ export default function TocNode({
   const linkSource = useSelector(selectLinkSource);
   const causalPathMode = useSelector(selectCausalPathMode);
   const causalPathNodes = useSelector(selectCausalPathNodesSet);
-  const causalPathFocalNode = useSelector(selectCausalPathFocalNode);
+  const causalPathFocalNodes = useSelector(selectCausalPathFocalNodes);
   const allNodes = useSelector(selectAllNodes);
   const board = useSelector(selectBoard);
   const allLists = useSelector(selectAllLists);
@@ -64,7 +64,7 @@ export default function TocNode({
   // Computed values
   const isLinkSource = linkSource === node.id;
   const isInCausalPath = causalPathNodes.has(node.id);
-  const isCausalPathFocalNode = causalPathFocalNode === node.id;
+  const isCausalPathFocalNode = Array.isArray(causalPathFocalNodes) && causalPathFocalNodes.includes(node.id);
   const [hoveredButton, setHoveredButton] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(node.title);
@@ -172,7 +172,7 @@ export default function TocNode({
 
   const handleExitCausalPathModeFromContext = () => {
     setShowContextMenu(false);
-    onExitCausalPathMode();
+    onExitCausalPathMode(node.id);
   }
 
   const handleDeleteFromContext = () => {

@@ -7,6 +7,8 @@ import { useAuth } from '../context/AuthContext';
 import { tocToolbarStyles } from '../styles/TocToolbar.styles';
 import { selectBoard, selectCanEdit } from '../store/selectors';
 import TocTagSelector from './TocTagSelector';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faProjectDiagram } from '@fortawesome/free-solid-svg-icons';
 
 
 export default function TocToolbar({
@@ -17,7 +19,9 @@ export default function TocToolbar({
   selectedTags,
   onTagsChange,
   allTags,
-  boardId
+  boardId,
+  onExitCausalMode,
+  showExitCausal
 }) {
   const router = useRouter();
   const { user } = useAuth();
@@ -175,6 +179,29 @@ export default function TocToolbar({
             Showing {selectedTags.length} tag{selectedTags.length !== 1 ? 's' : ''}
           </span>
         )}
+        <div style={{ marginLeft: 'auto' }}>
+          {showExitCausal && typeof onExitCausalMode === 'function' && (
+            <button
+              onClick={onExitCausalMode}
+              title="Exit Causal Mode"
+              style={{
+                backgroundColor: '#8b5cf6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '9999px',
+                width: '40px',
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 8px 16px rgba(0,0,0,0.25)',
+                cursor: 'pointer'
+              }}
+            >
+              <FontAwesomeIcon icon={faProjectDiagram} />
+            </button>
+          )}
+        </div>
       </div>
     </>
   );
