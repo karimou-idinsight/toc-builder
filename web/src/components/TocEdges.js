@@ -76,6 +76,7 @@ function TocEdgesInternal({ boardId, edges, onUpdateEdge, onDeleteEdge }) {
   const [flowEdges, setFlowEdges] = useEdgesState([]);
   const containerRef = useRef(null);
   const [editingEdge, setEditingEdgeState] = useState(null);
+  const [hoveredNodeId, setHoveredNodeId] = useState(null);
 
   // Wrapped setEditingEdge with logging
   const setEditingEdge = useCallback((edge) => {
@@ -107,6 +108,16 @@ function TocEdgesInternal({ boardId, edges, onUpdateEdge, onDeleteEdge }) {
     }
     setEditingEdge(null);
   }, [onDeleteEdge, editingEdge, setEditingEdge]);
+
+  // Listen for node hover events to highlight connected edges
+  useEffect(() => {
+    const handler = (e) => {
+      const { nodeId, hovered } = e.detail || {};
+      setHoveredNodeId((prev) => (hovered ? nodeId : prev === nodeId ? null : prev));
+    };
+    window.addEventListener('toc-node-hover', handler);
+    return () => window.removeEventListener('toc-node-hover', handler);
+  }, []);
 
   // Function to get actual DOM positions of nodes relative to the board container
   const getNodePosition = useCallback((nodeId) => {
@@ -239,6 +250,9 @@ function TocEdgesInternal({ boardId, edges, onUpdateEdge, onDeleteEdge }) {
       
       const { sourceX, sourceY, targetX, targetY } = connectionPoints;
       
+      const isHighlighted = hoveredNodeId && (edge.sourceId === hoveredNodeId || edge.targetId === hoveredNodeId);
+      const deemphasize = hoveredNodeId && !isHighlighted;
+
       return {
         id: edge.id,
         source: edge.sourceId,
@@ -281,11 +295,12 @@ function TocEdgesInternal({ boardId, edges, onUpdateEdge, onDeleteEdge }) {
         },
         style: {
           stroke: getEdgeColor(edge.type),
-          strokeWidth: 1,
-          opacity: 0.6,
+          strokeWidth: isHighlighted ? 2.5 : 1,
+          opacity: deemphasize ? 0.15 : isHighlighted ? 1 : 0.6,
           strokeDasharray: edge.type === 'ENABLES' ? '3,3' : 'none',
           cursor: 'pointer',
           pointerEvents: 'stroke',
+          filter: isHighlighted ? 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' : 'none',
         },
         pathOptions: {
           offset: 20,
@@ -297,7 +312,7 @@ function TocEdgesInternal({ boardId, edges, onUpdateEdge, onDeleteEdge }) {
         },
       };
     }).filter(edge => edge !== null); // Filter out null edges
-  }, [edges, onUpdateEdge, onDeleteEdge, setEditingEdge, getConnectionPoints]);
+  }, [edges, onUpdateEdge, onDeleteEdge, setEditingEdge, getConnectionPoints, hoveredNodeId]);
 
   // Get edge color based on type
   const getEdgeColor = (type) => {
