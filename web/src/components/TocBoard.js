@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useRouter } from 'next/router';
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, closestCenter } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import TocList from './TocList';
@@ -59,6 +60,7 @@ import {
 
 export default function TocBoard({ boardId = 'default' }) {
   const dispatch = useDispatch();
+  const router = useRouter();
   const boardInnerRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -79,6 +81,7 @@ export default function TocBoard({ boardId = 'default' }) {
   const selectedTags = useSelector(selectSelectedTags);
   const tagFilterMode = useSelector(selectTagFilterMode);
   const tagFilterNodes = useSelector(selectTagFilterNodesSet);
+
 
   useEffect(() => {
     // Load board data from server
@@ -362,8 +365,54 @@ export default function TocBoard({ boardId = 'default' }) {
     return Array.from(tagsSet).sort();
   }, [allNodes]);
 
+  // Initialize tags from URL on mount (after helpers are defined)
+  useEffect(() => {
+    if (router.isReady && router.query.tags) {
+      const tagsParam = router.query.tags;
+      let tagsFromUrl = [];
+      if (Array.isArray(tagsParam)) {
+        tagsFromUrl = tagsParam;
+      } else if (typeof tagsParam === 'string') {
+        tagsFromUrl = tagsParam.split('|').filter(tag => tag.length > 0);
+      }
+      if (tagsFromUrl.length > 0) {
+        dispatch(setSelectedTags(tagsFromUrl));
+        // Apply filter immediately
+        const nodesWithTags = new Set();
+        allNodes.forEach(node => {
+          if (node.tags && node.tags.some(tag => tagsFromUrl.includes(tag))) {
+            nodesWithTags.add(node.id);
+            const connectedNodes = getAllConnectedNodes(node.id);
+            connectedNodes.forEach(nodeId => nodesWithTags.add(nodeId));
+          }
+        });
+        dispatch(setTagFilterNodes(Array.from(nodesWithTags)));
+        dispatch(setTagFilterMode(true));
+      }
+    }
+  }, [router.isReady, router.query.tags, dispatch, allNodes, getAllConnectedNodes]);
+
   const handleTagsChange = useCallback((tags) => {
     dispatch(setSelectedTags(tags));
+    
+    // Update URL with selected tags (pipe-separated)
+    if (router.isReady) {
+      const currentQuery = { ...router.query };
+      if (tags.length === 0) {
+        delete currentQuery.tags;
+      } else {
+        // Join tags with pipe separator: "Education|Health|Agriculture"
+        currentQuery.tags = tags.join('|');
+      }
+      router.push(
+        {
+          pathname: router.pathname,
+          query: currentQuery,
+        },
+        undefined,
+        { shallow: true } // Don't reload the page
+      );
+    }
     
     if (tags.length === 0) {
       dispatch(clearTagFilter());
@@ -391,7 +440,7 @@ export default function TocBoard({ boardId = 'default' }) {
         boardInnerRef.current.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       }
     }, 0);
-  }, [allNodes, getAllConnectedNodes, dispatch]);
+  }, [allNodes, getAllConnectedNodes, dispatch, router]);
 
   // Filter edges for causal path mode - only show edges between nodes in the causal path
   // Also filter out backwards edges (edges that go from right to left across lists)
@@ -485,7 +534,9 @@ export default function TocBoard({ boardId = 'default' }) {
 
   const handleBackgroundClick = (e) => {
     if (e.target === e.currentTarget) {
-      clearSelection();
+      if (window.getSelection) {
+        try { window.getSelection().removeAllRanges(); } catch (_) {}
+      }
       if (linkMode) {
         exitLinkMode();
       }
