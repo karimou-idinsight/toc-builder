@@ -83,13 +83,15 @@ export default function TocNode({
 
   const canComment = useSelector(selectCanComment);
 
-  // Get all assumptions for edges connected to this node
+  // Get all assumptions for edges leading TO this node (incoming edges only)
   const nodeAssumptions = allEdges
-    .filter(edge => edge.sourceId === node.id || edge.targetId === node.id)
+    .filter(edge => edge.targetId === node.id) // Only incoming edges
     .flatMap(edge => edge.assumptions || [])
     .filter((assumption, index, self) => 
-      // Remove duplicates based on assumption id
-      index === self.findIndex(a => a.id === assumption.id)
+      // Remove duplicates based on assumption content (since same assumption might have different IDs)
+      index === self.findIndex(a => 
+        a.content === assumption.content && a.strength === assumption.strength
+      )
     );
   
   const hasAssumptions = nodeAssumptions.length > 0;
