@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { BaseEdge, EdgeLabelRenderer, getBezierPath } from 'reactflow';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -36,6 +36,8 @@ export default function CustomEdge({
   const [commentsPopoverPosition, setCommentsPopoverPosition] = useState({ top: 0, left: 0 });
   const assumptionIconRef = useRef(null);
   const commentIconRef = useRef(null);
+  const assumptionsPopoverRef = useRef(null);
+  const commentsPopoverRef = useRef(null);
 
   // Calculate position for indicators (middle of the edge)
   const centerX = (sourceX + targetX) / 2;
@@ -47,6 +49,36 @@ export default function CustomEdge({
   const showIndicators = hasComments || hasAssumptions;
 
   const canComment = useSelector(selectCanComment);
+
+  // Handle click outside to close popovers
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Close comments popover if click is outside
+      if (showCommentsPopover && 
+          commentIconRef.current && 
+          !commentIconRef.current.contains(event.target) &&
+          commentsPopoverRef.current &&
+          !commentsPopoverRef.current.contains(event.target)) {
+        setShowCommentsPopover(false);
+      }
+      
+      // Close assumptions popover if click is outside
+      if (showAssumptionsPopover && 
+          assumptionIconRef.current && 
+          !assumptionIconRef.current.contains(event.target) &&
+          assumptionsPopoverRef.current &&
+          !assumptionsPopoverRef.current.contains(event.target)) {
+        setShowAssumptionsPopover(false);
+      }
+    };
+
+    if (showCommentsPopover || showAssumptionsPopover) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showCommentsPopover, showAssumptionsPopover]);
 
   return (
     <>
@@ -76,7 +108,8 @@ export default function CustomEdge({
               <div
                 ref={commentIconRef}
                 style={{ position: 'relative', zIndex: 1 }}
-                onMouseEnter={(e) => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   if (commentIconRef.current) {
                     const rect = commentIconRef.current.getBoundingClientRect();
                     setCommentsPopoverPosition({
@@ -84,9 +117,10 @@ export default function CustomEdge({
                       left: rect.left + rect.width / 2 - 150, // Center the 300px popover
                     });
                   }
-                  setShowCommentsPopover(true);
+                  setShowCommentsPopover(!showCommentsPopover);
+                  // Close assumptions popover if open
+                  if (showAssumptionsPopover) setShowAssumptionsPopover(false);
                 }}
-                onMouseLeave={() => setShowCommentsPopover(false)}
               >
                 <div
                   className="comment-indicator"
@@ -119,7 +153,8 @@ export default function CustomEdge({
               <div
                 ref={assumptionIconRef}
                 style={{ position: 'relative', zIndex: 1 }}
-                onMouseEnter={(e) => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   if (assumptionIconRef.current) {
                     const rect = assumptionIconRef.current.getBoundingClientRect();
                     setAssumptionsPopoverPosition({
@@ -127,9 +162,10 @@ export default function CustomEdge({
                       left: rect.left + rect.width / 2 - 150, // Center the 300px popover
                     });
                   }
-                  setShowAssumptionsPopover(true);
+                  setShowAssumptionsPopover(!showAssumptionsPopover);
+                  // Close comments popover if open
+                  if (showCommentsPopover) setShowCommentsPopover(false);
                 }}
-                onMouseLeave={() => setShowAssumptionsPopover(false)}
               >
                 <div
                   className="assumption-indicator"
@@ -163,6 +199,7 @@ export default function CustomEdge({
       {/* Render comments popover as a portal to avoid z-index issues */}
       {showCommentsPopover && typeof document !== 'undefined' && data?.comments && createPortal(
         <div
+          ref={commentsPopoverRef}
           style={{
             position: 'fixed',
             top: `${commentsPopoverPosition.top}px`,
@@ -178,8 +215,6 @@ export default function CustomEdge({
             animation: 'fadeIn 0.15s ease-out',
             pointerEvents: 'auto',
           }}
-          onMouseEnter={() => setShowCommentsPopover(true)}
-          onMouseLeave={() => setShowCommentsPopover(false)}
           onClick={(e) => e.stopPropagation()}
         >
           <div
@@ -263,6 +298,7 @@ export default function CustomEdge({
       {/* Render assumptions popover as a portal to avoid z-index issues */}
       {showAssumptionsPopover && typeof document !== 'undefined' && createPortal(
         <div
+          ref={assumptionsPopoverRef}
           style={{
             position: 'fixed',
             top: `${assumptionsPopoverPosition.top}px`,
@@ -278,8 +314,6 @@ export default function CustomEdge({
             animation: 'fadeIn 0.15s ease-out',
             pointerEvents: 'auto',
           }}
-          onMouseEnter={() => setShowAssumptionsPopover(true)}
-          onMouseLeave={() => setShowAssumptionsPopover(false)}
           onClick={(e) => e.stopPropagation()}
         >
           <div

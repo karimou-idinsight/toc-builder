@@ -80,6 +80,8 @@ export default function TocNode({
   const [commentsPopoverPosition, setCommentsPopoverPosition] = useState({ top: 0, left: 0 });
   const assumptionIconRef = useRef(null);
   const commentIconRef = useRef(null);
+  const assumptionsPopoverRef = useRef(null);
+  const commentsPopoverRef = useRef(null);
 
   const canComment = useSelector(selectCanComment);
 
@@ -102,6 +104,36 @@ export default function TocNode({
       window.dispatchEvent(new CustomEvent('toc-node-hover', { detail: { nodeId: node.id, hovered: isHovered } }));
     }
   }, [isHovered, node.id]);
+
+  // Handle click outside to close popovers
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Close comments popover if click is outside
+      if (showCommentsPopover && 
+          commentIconRef.current && 
+          !commentIconRef.current.contains(event.target) &&
+          commentsPopoverRef.current &&
+          !commentsPopoverRef.current.contains(event.target)) {
+        setShowCommentsPopover(false);
+      }
+      
+      // Close assumptions popover if click is outside
+      if (showAssumptionsPopover && 
+          assumptionIconRef.current && 
+          !assumptionIconRef.current.contains(event.target) &&
+          assumptionsPopoverRef.current &&
+          !assumptionsPopoverRef.current.contains(event.target)) {
+        setShowAssumptionsPopover(false);
+      }
+    };
+
+    if (showCommentsPopover || showAssumptionsPopover) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showCommentsPopover, showAssumptionsPopover]);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -308,7 +340,8 @@ export default function TocNode({
               right: hasAssumptions ? '28px' : '4px', // Shift left if assumptions are present
               zIndex: 1,
             }}
-            onMouseEnter={(e) => {
+            onClick={(e) => {
+              e.stopPropagation();
               if (commentIconRef.current) {
                 const rect = commentIconRef.current.getBoundingClientRect();
                 setCommentsPopoverPosition({
@@ -316,9 +349,10 @@ export default function TocNode({
                   left: rect.right - 300, // Align right edge of popover with right edge of icon
                 });
               }
-              setShowCommentsPopover(true);
+              setShowCommentsPopover(!showCommentsPopover);
+              // Close assumptions popover if open
+              if (showAssumptionsPopover) setShowAssumptionsPopover(false);
             }}
-            onMouseLeave={() => setShowCommentsPopover(false)}
           >
             <div style={{
               backgroundColor: listColor,
@@ -349,7 +383,8 @@ export default function TocNode({
           <div
             ref={assumptionIconRef}
             style={{ position: 'absolute', top: '4px', right: '4px', zIndex: 2 }}
-            onMouseEnter={(e) => {
+            onClick={(e) => {
+              e.stopPropagation();
               if (assumptionIconRef.current) {
                 const rect = assumptionIconRef.current.getBoundingClientRect();
                 setAssumptionsPopoverPosition({
@@ -357,9 +392,10 @@ export default function TocNode({
                   left: rect.right - 300, // Align right edge of popover with right edge of icon
                 });
               }
-              setShowAssumptionsPopover(true);
+              setShowAssumptionsPopover(!showAssumptionsPopover);
+              // Close comments popover if open
+              if (showCommentsPopover) setShowCommentsPopover(false);
             }}
-            onMouseLeave={() => setShowAssumptionsPopover(false)}
           >
             <div
               style={{
@@ -487,6 +523,7 @@ export default function TocNode({
       {/* Render comments popover as a portal to avoid z-index issues */}
       {showCommentsPopover && typeof document !== 'undefined' && node.comments && createPortal(
         <div
+          ref={commentsPopoverRef}
           style={{
             position: 'fixed',
             top: `${commentsPopoverPosition.top}px`,
@@ -502,8 +539,6 @@ export default function TocNode({
             animation: 'fadeIn 0.15s ease-out',
             pointerEvents: 'auto',
           }}
-          onMouseEnter={() => setShowCommentsPopover(true)}
-          onMouseLeave={() => setShowCommentsPopover(false)}
           onClick={(e) => e.stopPropagation()}
         >
           <div
@@ -570,6 +605,7 @@ export default function TocNode({
       {/* Render assumptions popover as a portal to avoid z-index issues */}
       {showAssumptionsPopover && typeof document !== 'undefined' && createPortal(
         <div
+          ref={assumptionsPopoverRef}
           style={{
             position: 'fixed',
             top: `${assumptionsPopoverPosition.top}px`,
@@ -585,8 +621,6 @@ export default function TocNode({
             animation: 'fadeIn 0.15s ease-out',
             pointerEvents: 'auto',
           }}
-          onMouseEnter={() => setShowAssumptionsPopover(true)}
-          onMouseLeave={() => setShowAssumptionsPopover(false)}
           onClick={(e) => e.stopPropagation()}
         >
           <div
