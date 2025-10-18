@@ -193,7 +193,7 @@ function BoardsPageContent() {
                       style={boardsPageStyles.deleteButton}
                       title="Manage Access"
                     >
-                      👥
+                      👥 Manage Access
                     </button>
                   )}
                   {board.role === 'owner' && (
