@@ -219,12 +219,15 @@ const boardSlice = createSlice({
 
     toggleNodeDraggable: (state, action) => {
       const { nodeId, isDraggable } = action.payload;
+      console.log('Redux toggleNodeDraggable:', nodeId, 'isDraggable:', isDraggable);
       if (isDraggable) {
         if (!state.draggableNodes.includes(nodeId)) {
           state.draggableNodes.push(nodeId);
+          console.log('Added to draggable nodes:', state.draggableNodes);
         }
       } else {
         state.draggableNodes = state.draggableNodes.filter(id => id !== nodeId);
+        console.log('Removed from draggable nodes:', state.draggableNodes);
       }
     },
 

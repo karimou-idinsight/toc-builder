@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Always static export (disable SSR)
-  output: 'export',
+  // Remove static export to support dynamic routes
+  // output: 'export',
   distDir: 'dist',
   images: {
     unoptimized: true
@@ -19,7 +19,11 @@ const nextConfig = {
   // Configure for monorepo structure
   experimental: {
     outputFileTracingRoot: process.cwd(),
-  }
+  },
+  // App Router configuration
+  appDir: true,
+  // Remove trailing slashes since we're not using static export
+  // trailingSlash: true
 };
 
 export default nextConfig;

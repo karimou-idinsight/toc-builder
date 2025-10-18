@@ -1,12 +1,13 @@
 'use client';
 
-import { useRouter } from 'next/router';
-import TocBoard from '../../components/TocBoard';
-import ClientOnly from '../../components/ClientOnly';
+import { useParams } from 'next/navigation';
+import { useMemo } from 'react';
+import TocBoard from '../../../components/TocBoard';
+import ClientOnly from '../../../components/ClientOnly';
 
-export default function BoardPage() {
-  const router = useRouter();
-  const { id } = router.query;
+export default function BoardPageClient() {
+  const params = useParams();
+  const id = useMemo(() => params?.id || 'default', [params?.id]);
 
   return (
     <div className="app">
@@ -39,4 +40,3 @@ export default function BoardPage() {
     </div>
   );
 }
-

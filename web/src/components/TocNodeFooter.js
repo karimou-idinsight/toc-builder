@@ -22,8 +22,6 @@ export default function TocNodeFooter({
 }) {
   const canEdit = useSelector(selectCanEdit);
   const canComment = useSelector(selectCanComment);
-  console.log('canEdit', canEdit);
-  console.log('canComment', canComment);
 
   const handleCausalPathClick = () => {
     // In multi-focal mode: clicking when focal toggles this node only

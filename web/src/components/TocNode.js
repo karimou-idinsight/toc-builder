@@ -155,6 +155,13 @@ export default function TocNode({
     disabled: !isDraggable // Only allow dragging when isDraggable is true
   });
 
+  // Debug logging for draggable state
+  useEffect(() => {
+    if (isDraggable) {
+      console.log('Node is now draggable:', node.id, 'listId:', node.listId);
+    }
+  }, [isDraggable, node.id, node.listId]);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -194,9 +201,13 @@ export default function TocNode({
   };
 
   const handleMoveNode = () => {
+    console.log('Move node clicked for:', node.id, 'current isDraggable:', isDraggable);
     setShowContextMenu(false);
     if (onToggleDraggable) {
+      console.log('Making node draggable:', node.id);
       onToggleDraggable(node.id, true);
+    } else {
+      console.log('onToggleDraggable not available');
     }
   };
 

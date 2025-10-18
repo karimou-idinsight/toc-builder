@@ -1,23 +1,24 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 
 export default function ProtectedRoute({ children, requireAuth = true, requireSuperAdmin = false }) {
   const { user, loading, isSuperAdmin } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const hasRedirected = useRef(false);
 
   const userIsSuperAdmin = isSuperAdmin();
   useEffect(() => {
     // Reset redirect flag when path changes
     hasRedirected.current = false;
-  }, [router.asPath]);
+  }, [pathname]);
 
   useEffect(() => {
     // Don't do anything while loading
-    if (loading || !router.isReady) return;
+    if (loading) return;
     
     // Prevent multiple redirects
     if (hasRedirected.current) return;
@@ -26,7 +27,7 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
     // If authentication is required but user is not authenticated
     if (requireAuth && !user) {
       hasRedirected.current = true;
-      sessionStorage.setItem('redirectAfterLogin', router.asPath);
+      sessionStorage.setItem('redirectAfterLogin', pathname);
       router.replace('/login');
       return;
     }
@@ -48,10 +49,10 @@ export default function ProtectedRoute({ children, requireAuth = true, requireSu
       }
       return;
     }
-  }, [user, loading, requireAuth, requireSuperAdmin, router.asPath, router.isReady]);
+  }, [user, loading, requireAuth, requireSuperAdmin, pathname, router]);
 
   // Show loading screen while auth is being checked
-  if (loading || !router.isReady) {
+  if (loading) {
     return (
       <div style={styles.loadingContainer}>
         <div style={styles.spinner}></div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import ProtectedRoute from '../../../components/ProtectedRoute';
 import { useAuth } from '../../../context/AuthContext';
 import { adminApi } from '../../../utils/adminApi';
@@ -829,4 +829,3 @@ const styles = {
     cursor: 'pointer',
   },
 };
-

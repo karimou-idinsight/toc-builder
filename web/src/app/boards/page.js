@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Fragment } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Dialog, Transition } from '@headlessui/react';
 import ProtectedRoute from '../../components/ProtectedRoute';
@@ -812,4 +812,3 @@ function ManageAccessModal({ boardId, onClose, onChanged }) {
     </Transition>
   );
 }
-
