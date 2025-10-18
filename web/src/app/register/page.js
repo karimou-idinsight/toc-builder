@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
+import { registerPageStyles } from '../../styles/RegisterPage.styles';
 
 export default function RegisterPage() {
   const { register, error: authError, loading } = useAuth();
@@ -51,23 +52,23 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>TOC Builder</h1>
-          <p style={styles.subtitle}>Create your account</p>
+    <div style={registerPageStyles.container}>
+      <div style={registerPageStyles.card}>
+        <div style={registerPageStyles.header}>
+          <h1 style={registerPageStyles.title}>TOC Builder</h1>
+          <p style={registerPageStyles.subtitle}>Create your account</p>
         </div>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <form onSubmit={handleSubmit} style={registerPageStyles.form}>
           {(error || authError) && (
-            <div style={styles.errorBanner}>
+            <div style={registerPageStyles.errorBanner}>
               {error || authError}
             </div>
           )}
 
-          <div style={styles.formRow}>
-            <div style={styles.formGroup}>
-              <label htmlFor="first_name" style={styles.label}>
+          <div style={registerPageStyles.formRow}>
+            <div style={registerPageStyles.formGroup}>
+              <label htmlFor="first_name" style={registerPageStyles.label}>
                 First name
               </label>
               <input
@@ -77,13 +78,13 @@ export default function RegisterPage() {
                 required
                 value={formData.first_name}
                 onChange={handleChange}
-                style={styles.input}
+                style={registerPageStyles.input}
                 placeholder="John"
               />
             </div>
 
-            <div style={styles.formGroup}>
-              <label htmlFor="last_name" style={styles.label}>
+            <div style={registerPageStyles.formGroup}>
+              <label htmlFor="last_name" style={registerPageStyles.label}>
                 Last name
               </label>
               <input
@@ -93,14 +94,14 @@ export default function RegisterPage() {
                 required
                 value={formData.last_name}
                 onChange={handleChange}
-                style={styles.input}
+                style={registerPageStyles.input}
                 placeholder="Doe"
               />
             </div>
           </div>
 
-          <div style={styles.formGroup}>
-            <label htmlFor="email" style={styles.label}>
+          <div style={registerPageStyles.formGroup}>
+            <label htmlFor="email" style={registerPageStyles.label}>
               Email address
             </label>
             <input
@@ -111,13 +112,13 @@ export default function RegisterPage() {
               autoComplete="email"
               value={formData.email}
               onChange={handleChange}
-              style={styles.input}
+              style={registerPageStyles.input}
               placeholder="you@example.com"
             />
           </div>
 
-          <div style={styles.formGroup}>
-            <label htmlFor="password" style={styles.label}>
+          <div style={registerPageStyles.formGroup}>
+            <label htmlFor="password" style={registerPageStyles.label}>
               Password
             </label>
             <input
@@ -128,14 +129,14 @@ export default function RegisterPage() {
               autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
-              style={styles.input}
+              style={registerPageStyles.input}
               placeholder="••••••••"
             />
-            <p style={styles.hint}>Must be at least 8 characters</p>
+            <p style={registerPageStyles.hint}>Must be at least 8 characters</p>
           </div>
 
-          <div style={styles.formGroup}>
-            <label htmlFor="confirmPassword" style={styles.label}>
+          <div style={registerPageStyles.formGroup}>
+            <label htmlFor="confirmPassword" style={registerPageStyles.label}>
               Confirm password
             </label>
             <input
@@ -146,7 +147,7 @@ export default function RegisterPage() {
               autoComplete="new-password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              style={styles.input}
+              style={registerPageStyles.input}
               placeholder="••••••••"
             />
           </div>
@@ -156,18 +157,18 @@ export default function RegisterPage() {
             // disabled={isLoading || loading}
             disabled={true}
             style={{
-              ...styles.button,
-              ...(isLoading || loading ? styles.buttonDisabled : {})
+              ...registerPageStyles.button,
+              ...(isLoading || loading ? registerPageStyles.buttonDisabled : {})
             }}
           >
             {isLoading || loading ? 'Creating account...' : 'Sign up'}
           </button>
         </form>
 
-        <div style={styles.footer}>
-          <p style={styles.footerText}>
+        <div style={registerPageStyles.footer}>
+          <p style={registerPageStyles.footerText}>
             Already have an account?{' '}
-            <Link href="/login" style={styles.link}>
+            <Link href="/login" style={registerPageStyles.link}>
               Sign in
             </Link>
           </p>
@@ -177,105 +178,4 @@ export default function RegisterPage() {
   );
 }
 
-const styles = {
-  container: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f3f4f6',
-    padding: '1rem'
-  },
-  card: {
-    backgroundColor: 'white',
-    padding: '2rem',
-    borderRadius: '12px',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    width: '100%',
-    maxWidth: '480px'
-  },
-  header: {
-    marginBottom: '2rem',
-    textAlign: 'center'
-  },
-  title: {
-    fontSize: '2rem',
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: '0.5rem'
-  },
-  subtitle: {
-    fontSize: '0.875rem',
-    color: '#6b7280'
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1.5rem'
-  },
-  formRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '1rem'
-  },
-  formGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem'
-  },
-  label: {
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    color: '#374151'
-  },
-  input: {
-    padding: '0.75rem',
-    border: '1px solid #d1d5db',
-    borderRadius: '6px',
-    fontSize: '0.875rem',
-    outline: 'none',
-    transition: 'border-color 0.2s',
-  },
-  hint: {
-    fontSize: '0.75rem',
-    color: '#6b7280',
-    margin: 0
-  },
-  button: {
-    padding: '0.75rem',
-    backgroundColor: '#3b82f6',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s'
-  },
-  buttonDisabled: {
-    backgroundColor: '#9ca3af',
-    cursor: 'not-allowed'
-  },
-  errorBanner: {
-    padding: '0.75rem',
-    backgroundColor: '#fee2e2',
-    color: '#991b1b',
-    borderRadius: '6px',
-    fontSize: '0.875rem',
-    border: '1px solid #fecaca'
-  },
-  footer: {
-    marginTop: '1.5rem',
-    textAlign: 'center'
-  },
-  footerText: {
-    fontSize: '0.875rem',
-    color: '#6b7280'
-  },
-  link: {
-    color: '#3b82f6',
-    textDecoration: 'none',
-    fontSize: '0.875rem',
-    fontWeight: '500'
-  }
-};
+// Styles moved to ../../styles/RegisterPage.styles.js

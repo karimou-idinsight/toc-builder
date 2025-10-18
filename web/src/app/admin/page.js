@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import { useAuth } from '../../context/AuthContext';
 import { adminApi } from '../../utils/adminApi';
+import { adminPageStyles } from '../../styles/AdminPage.styles';
 
 export default function AdminDashboard() {
   return (
@@ -44,32 +45,32 @@ function AdminDashboardContent() {
 
   if (loading) {
     return (
-      <div style={styles.loadingContainer}>
-        <div style={styles.spinner}></div>
-        <p style={styles.loadingText}>Loading dashboard...</p>
+      <div style={adminPageStyles.loadingContainer}>
+        <div style={adminPageStyles.spinner}></div>
+        <p style={adminPageStyles.loadingText}>Loading dashboard...</p>
       </div>
     );
   }
 
   return (
-    <div style={styles.container}>
+    <div style={adminPageStyles.container}>
       {/* Header */}
-      <header style={styles.header}>
-        <div style={styles.headerContent}>
+      <header style={adminPageStyles.header}>
+        <div style={adminPageStyles.headerContent}>
           <div>
-            <h1 style={styles.title}>Admin Dashboard</h1>
-            <p style={styles.subtitle}>
+            <h1 style={adminPageStyles.title}>Admin Dashboard</h1>
+            <p style={adminPageStyles.subtitle}>
               Welcome back, {user?.first_name} {user?.last_name}
             </p>
           </div>
-          <div style={styles.headerActions}>
+          <div style={adminPageStyles.headerActions}>
             <button
               onClick={() => router.push('/boards')}
-              style={styles.secondaryButton}
+              style={adminPageStyles.secondaryButton}
             >
               My Boards
             </button>
-            <button onClick={handleLogout} style={styles.logoutButton}>
+            <button onClick={handleLogout} style={adminPageStyles.logoutButton}>
               Logout
             </button>
           </div>
@@ -77,16 +78,16 @@ function AdminDashboardContent() {
       </header>
 
       {/* Main Content */}
-      <main style={styles.main}>
+      <main style={adminPageStyles.main}>
         {error && (
-          <div style={styles.errorBanner}>
+          <div style={adminPageStyles.errorBanner}>
             <p>{error}</p>
           </div>
         )}
 
         {/* Statistics Cards */}
         {stats && (
-          <div style={styles.statsGrid}>
+          <div style={adminPageStyles.statsGrid}>
             <StatCard
               title="Total Users"
               value={stats.users.total_users}
@@ -127,9 +128,9 @@ function AdminDashboardContent() {
         )}
 
         {/* Quick Actions */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>Quick Actions</h2>
-          <div style={styles.actionGrid}>
+        <div style={adminPageStyles.section}>
+          <h2 style={adminPageStyles.sectionTitle}>Quick Actions</h2>
+          <div style={adminPageStyles.actionGrid}>
             <ActionCard
               title="Manage Users"
               description="View, create, edit, and manage user accounts"
@@ -161,10 +162,10 @@ function AdminDashboardContent() {
         </div>
 
         {/* Recent Activity */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>Recent Activity</h2>
-          <div style={styles.activityCard}>
-            <p style={styles.emptyState}>No recent activity to display</p>
+        <div style={adminPageStyles.section}>
+          <h2 style={adminPageStyles.sectionTitle}>Recent Activity</h2>
+          <div style={adminPageStyles.activityCard}>
+            <p style={adminPageStyles.emptyState}>No recent activity to display</p>
           </div>
         </div>
       </main>
@@ -175,13 +176,13 @@ function AdminDashboardContent() {
 // Stat Card Component
 function StatCard({ title, value, icon, color }) {
   return (
-    <div style={styles.statCard}>
-      <div style={styles.statIcon} className="stat-icon">
+    <div style={adminPageStyles.statCard}>
+      <div style={adminPageStyles.statIcon} className="stat-icon">
         {icon}
       </div>
-      <div style={styles.statContent}>
-        <p style={styles.statTitle}>{title}</p>
-        <p style={{ ...styles.statValue, color }}>{value}</p>
+      <div style={adminPageStyles.statContent}>
+        <p style={adminPageStyles.statTitle}>{title}</p>
+        <p style={{ ...adminPageStyles.statValue, color }}>{value}</p>
       </div>
     </div>
   );
@@ -194,200 +195,17 @@ function ActionCard({ title, description, icon, onClick, disabled }) {
       onClick={onClick}
       disabled={disabled}
       style={{
-        ...styles.actionCard,
-        ...(disabled && styles.actionCardDisabled)
+        ...adminPageStyles.actionCard,
+        ...(disabled && adminPageStyles.actionCardDisabled)
       }}
     >
-      <div style={styles.actionIcon}>{icon}</div>
-      <div style={styles.actionContent}>
-        <h3 style={styles.actionTitle}>{title}</h3>
-        <p style={styles.actionDescription}>{description}</p>
+      <div style={adminPageStyles.actionIcon}>{icon}</div>
+      <div style={adminPageStyles.actionContent}>
+        <h3 style={adminPageStyles.actionTitle}>{title}</h3>
+        <p style={adminPageStyles.actionDescription}>{description}</p>
       </div>
     </button>
   );
 }
 
-const styles = {
-  container: {
-    minHeight: '100vh',
-    backgroundColor: '#f8fafc',
-  },
-  header: {
-    backgroundColor: 'white',
-    borderBottom: '1px solid #e2e8f0',
-    padding: '1.5rem 2rem',
-  },
-  headerContent: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '1rem',
-  },
-  title: {
-    fontSize: '1.875rem',
-    fontWeight: 'bold',
-    color: '#1e293b',
-    margin: 0,
-  },
-  subtitle: {
-    fontSize: '0.875rem',
-    color: '#64748b',
-    margin: '0.25rem 0 0',
-  },
-  headerActions: {
-    display: 'flex',
-    gap: '0.75rem',
-  },
-  secondaryButton: {
-    padding: '0.625rem 1.25rem',
-    backgroundColor: 'white',
-    color: '#3b82f6',
-    border: '1px solid #3b82f6',
-    borderRadius: '0.5rem',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-  },
-  logoutButton: {
-    padding: '0.625rem 1.25rem',
-    backgroundColor: '#ef4444',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.5rem',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-  },
-  main: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    padding: '2rem',
-  },
-  loadingContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100vh',
-    backgroundColor: '#f8fafc',
-  },
-  spinner: {
-    width: '50px',
-    height: '50px',
-    border: '4px solid #e5e7eb',
-    borderTop: '4px solid #3b82f6',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite',
-  },
-  loadingText: {
-    marginTop: '1rem',
-    fontSize: '0.875rem',
-    color: '#6b7280',
-  },
-  errorBanner: {
-    backgroundColor: '#fee2e2',
-    border: '1px solid #fecaca',
-    borderRadius: '0.5rem',
-    padding: '1rem',
-    marginBottom: '1.5rem',
-    color: '#991b1b',
-  },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '1.5rem',
-    marginBottom: '2rem',
-  },
-  statCard: {
-    backgroundColor: 'white',
-    borderRadius: '0.75rem',
-    padding: '1.5rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1rem',
-    transition: 'transform 0.2s, box-shadow 0.2s',
-  },
-  statIcon: {
-    fontSize: '2.5rem',
-  },
-  statContent: {
-    flex: 1,
-  },
-  statTitle: {
-    fontSize: '0.875rem',
-    color: '#64748b',
-    margin: 0,
-  },
-  statValue: {
-    fontSize: '2rem',
-    fontWeight: 'bold',
-    margin: '0.25rem 0 0',
-  },
-  section: {
-    marginBottom: '2rem',
-  },
-  sectionTitle: {
-    fontSize: '1.5rem',
-    fontWeight: '600',
-    color: '#1e293b',
-    marginBottom: '1rem',
-  },
-  actionGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: '1.5rem',
-  },
-  actionCard: {
-    backgroundColor: 'white',
-    borderRadius: '0.75rem',
-    padding: '1.5rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    border: 'none',
-    textAlign: 'left',
-    cursor: 'pointer',
-    transition: 'transform 0.2s, box-shadow 0.2s',
-    display: 'flex',
-    gap: '1rem',
-    width: '100%',
-  },
-  actionCardDisabled: {
-    opacity: 0.5,
-    cursor: 'not-allowed',
-  },
-  actionIcon: {
-    fontSize: '2rem',
-  },
-  actionContent: {
-    flex: 1,
-  },
-  actionTitle: {
-    fontSize: '1.125rem',
-    fontWeight: '600',
-    color: '#1e293b',
-    margin: '0 0 0.5rem',
-  },
-  actionDescription: {
-    fontSize: '0.875rem',
-    color: '#64748b',
-    margin: 0,
-    lineHeight: '1.5',
-  },
-  activityCard: {
-    backgroundColor: 'white',
-    borderRadius: '0.75rem',
-    padding: '2rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-  },
-  emptyState: {
-    textAlign: 'center',
-    color: '#94a3b8',
-    fontSize: '0.875rem',
-    margin: 0,
-  },
-};
+// Styles moved to ../../styles/AdminPage.styles.js

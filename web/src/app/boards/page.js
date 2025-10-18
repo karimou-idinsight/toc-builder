@@ -7,6 +7,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import { useAuth } from '../../context/AuthContext';
 import { boardsApi } from '../../utils/boardsApi';
+import { boardsPageStyles } from '../../styles/BoardsPage.styles';
 
 export default function BoardsPage() {
   return (
@@ -58,43 +59,43 @@ function BoardsPageContent() {
   const getRoleBadgeColor = (role) => {
     switch (role) {
       case 'owner':
-        return styles.badgeOwner;
+        return boardsPageStyles.badgeOwner;
       case 'contributor':
-        return styles.badgeContributor;
+        return boardsPageStyles.badgeContributor;
       case 'reviewer':
-        return styles.badgeReviewer;
+        return boardsPageStyles.badgeReviewer;
       default:
-        return styles.badgeViewer;
+        return boardsPageStyles.badgeViewer;
     }
   };
 
   return (
-    <div style={styles.container}>
+    <div style={boardsPageStyles.container}>
       {/* Header */}
-      <header style={styles.header}>
-        <div style={styles.headerContent}>
+      <header style={boardsPageStyles.header}>
+        <div style={boardsPageStyles.headerContent}>
           <div>
-            <h1 style={styles.title}>My Boards</h1>
-            <p style={styles.subtitle}>
+            <h1 style={boardsPageStyles.title}>My Boards</h1>
+            <p style={boardsPageStyles.subtitle}>
               Welcome back, {user?.first_name} {user?.last_name}
             </p>
           </div>
-          <div style={styles.headerActions}>
+          <div style={boardsPageStyles.headerActions}>
             <button
               onClick={() => setShowCreateModal(true)}
-              style={styles.primaryButton}
+              style={boardsPageStyles.primaryButton}
             >
               + New Board
             </button>
             {user?.role === 'super_admin' && (
               <button
                 onClick={() => router.push('/admin')}
-                style={styles.secondaryButton}
+                style={boardsPageStyles.secondaryButton}
               >
                 Admin Dashboard
               </button>
             )}
-            <button onClick={logout} style={styles.logoutButton}>
+            <button onClick={logout} style={boardsPageStyles.logoutButton}>
               Logout
             </button>
           </div>
@@ -102,82 +103,82 @@ function BoardsPageContent() {
       </header>
 
       {/* Main Content */}
-      <main style={styles.main}>
+      <main style={boardsPageStyles.main}>
         {error && (
-          <div style={styles.errorBanner}>
+          <div style={boardsPageStyles.errorBanner}>
             <p>{error}</p>
           </div>
         )}
 
         {loading ? (
-          <div style={styles.loadingContainer}>
-            <div style={styles.spinner}></div>
-            <p style={styles.loadingText}>Loading boards...</p>
+          <div style={boardsPageStyles.loadingContainer}>
+            <div style={boardsPageStyles.spinner}></div>
+            <p style={boardsPageStyles.loadingText}>Loading boards...</p>
           </div>
         ) : boards.length === 0 ? (
-          <div style={styles.emptyState}>
-            <div style={styles.emptyIcon}>📊</div>
-            <h2 style={styles.emptyTitle}>No boards yet</h2>
-            <p style={styles.emptyText}>
+          <div style={boardsPageStyles.emptyState}>
+            <div style={boardsPageStyles.emptyIcon}>📊</div>
+            <h2 style={boardsPageStyles.emptyTitle}>No boards yet</h2>
+            <p style={boardsPageStyles.emptyText}>
               Create your first Theory of Change board to get started
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
-              style={styles.createButton}
+              style={boardsPageStyles.createButton}
             >
               + Create Your First Board
             </button>
           </div>
         ) : (
-          <div style={styles.boardsGrid}>
+          <div style={boardsPageStyles.boardsGrid}>
             {boards.map((board) => (
-              <div key={board.id} style={styles.boardCard}>
-                <div style={styles.boardCardHeader}>
+              <div key={board.id} style={boardsPageStyles.boardCard}>
+                <div style={boardsPageStyles.boardCardHeader}>
                   <div>
-                    <h3 style={styles.boardTitle}>{board.name}</h3>
+                    <h3 style={boardsPageStyles.boardTitle}>{board.name}</h3>
                     {board.description && (
-                      <p style={styles.boardDescription}>{board.description}</p>
+                      <p style={boardsPageStyles.boardDescription}>{board.description}</p>
                     )}
                   </div>
-                  <span style={{ ...styles.roleBadge, ...getRoleBadgeColor(board.role) }}>
+                  <span style={{ ...boardsPageStyles.roleBadge, ...getRoleBadgeColor(board.role) }}>
                     {board.role}
                   </span>
                 </div>
 
-                <div style={styles.boardMeta}>
-                  <div style={styles.metaItem}>
-                    <span style={styles.metaIcon}>👥</span>
-                    <span style={styles.metaText}>
+                <div style={boardsPageStyles.boardMeta}>
+                  <div style={boardsPageStyles.metaItem}>
+                    <span style={boardsPageStyles.metaIcon}>👥</span>
+                    <span style={boardsPageStyles.metaText}>
                       {board.collaborator_count || 1} {board.collaborator_count === 1 ? 'member' : 'members'}
                     </span>
                   </div>
-                  <div style={styles.metaItem}>
-                    <span style={styles.metaIcon}>
+                  <div style={boardsPageStyles.metaItem}>
+                    <span style={boardsPageStyles.metaIcon}>
                       {board.is_public ? '🌐' : '🔒'}
                     </span>
-                    <span style={styles.metaText}>
+                    <span style={boardsPageStyles.metaText}>
                       {board.is_public ? 'Public' : 'Private'}
                     </span>
                   </div>
-                  <div style={styles.metaItem}>
-                    <span style={styles.metaIcon}>📅</span>
-                    <span style={styles.metaText}>
+                  <div style={boardsPageStyles.metaItem}>
+                    <span style={boardsPageStyles.metaIcon}>📅</span>
+                    <span style={boardsPageStyles.metaText}>
                       {new Date(board.updated_at).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
 
-                <div style={styles.boardActions}>
+                <div style={boardsPageStyles.boardActions}>
                   <button
                     onClick={() => router.push(`/board/${board.id}`)}
-                    style={styles.openButton}
+                    style={boardsPageStyles.openButton}
                   >
                     Open Board
                   </button>
                 {board.role === 'owner' && (
                   <button
                     onClick={() => setManageBoardId(board.id)}
-                    style={styles.secondaryButton}
+                    style={boardsPageStyles.secondaryButton}
                     title="Manage access"
                   >
                     Manage Access
@@ -186,7 +187,7 @@ function BoardsPageContent() {
                   {board.role === 'owner' && (
                     <button
                       onClick={() => handleDeleteBoard(board.id, board.name)}
-                      style={styles.deleteButton}
+                      style={boardsPageStyles.deleteButton}
                       title="Delete board"
                     >
                       🗑️
@@ -248,64 +249,64 @@ function CreateBoardModal({ onClose, onSuccess }) {
   };
 
   return (
-    <div style={styles.modalOverlay} onClick={onClose}>
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h2 style={styles.modalTitle}>Create New Board</h2>
+    <div style={boardsPageStyles.modalOverlay} onClick={onClose}>
+      <div style={boardsPageStyles.modal} onClick={(e) => e.stopPropagation()}>
+        <h2 style={boardsPageStyles.modalTitle}>Create New Board</h2>
         
         {error && (
-          <div style={styles.errorMessage}>
+          <div style={boardsPageStyles.errorMessage}>
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Board Name *</label>
+        <form onSubmit={handleSubmit} style={boardsPageStyles.form}>
+          <div style={boardsPageStyles.formGroup}>
+            <label style={boardsPageStyles.label}>Board Name *</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              style={styles.input}
+              style={boardsPageStyles.input}
               placeholder="e.g., Community Health Initiative"
               required
               autoFocus
             />
           </div>
 
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Description</label>
+          <div style={boardsPageStyles.formGroup}>
+            <label style={boardsPageStyles.label}>Description</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              style={{ ...styles.input, minHeight: '100px', resize: 'vertical' }}
+              style={{ ...boardsPageStyles.input, minHeight: '100px', resize: 'vertical' }}
               placeholder="Brief description of this Theory of Change..."
             />
           </div>
 
-          <div style={styles.formGroup}>
-            <label style={styles.checkboxLabel}>
+          <div style={boardsPageStyles.formGroup}>
+            <label style={boardsPageStyles.checkboxLabel}>
               <input
                 type="checkbox"
                 checked={formData.is_public}
                 onChange={(e) => setFormData({ ...formData, is_public: e.target.checked })}
-                style={styles.checkbox}
+                style={boardsPageStyles.checkbox}
               />
               Make this board public (anyone can view)
             </label>
           </div>
 
-          <div style={styles.modalActions}>
+          <div style={boardsPageStyles.modalActions}>
             <button
               type="button"
               onClick={onClose}
-              style={styles.cancelButton}
+              style={boardsPageStyles.cancelButton}
               disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              style={styles.submitButton}
+              style={boardsPageStyles.submitButton}
               disabled={loading}
             >
               {loading ? 'Creating...' : 'Create Board'}
@@ -317,333 +318,7 @@ function CreateBoardModal({ onClose, onSuccess }) {
   );
 }
 
-const styles = {
-  container: {
-    minHeight: '100vh',
-    backgroundColor: '#f8fafc',
-  },
-  header: {
-    backgroundColor: 'white',
-    borderBottom: '1px solid #e2e8f0',
-    padding: '1.5rem 2rem',
-  },
-  headerContent: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '1rem',
-  },
-  title: {
-    fontSize: '1.875rem',
-    fontWeight: 'bold',
-    color: '#1e293b',
-    margin: 0,
-  },
-  subtitle: {
-    fontSize: '0.875rem',
-    color: '#64748b',
-    margin: '0.25rem 0 0',
-  },
-  headerActions: {
-    display: 'flex',
-    gap: '0.75rem',
-    flexWrap: 'wrap',
-  },
-  primaryButton: {
-    padding: '0.625rem 1.25rem',
-    backgroundColor: '#3b82f6',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.5rem',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-  },
-  secondaryButton: {
-    padding: '0.625rem 1.25rem',
-    backgroundColor: 'white',
-    color: '#3b82f6',
-    border: '1px solid #3b82f6',
-    borderRadius: '0.5rem',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-  },
-  logoutButton: {
-    padding: '0.625rem 1.25rem',
-    backgroundColor: '#ef4444',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.5rem',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-  },
-  main: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    padding: '2rem',
-  },
-  loadingContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '400px',
-  },
-  spinner: {
-    width: '50px',
-    height: '50px',
-    border: '4px solid #e5e7eb',
-    borderTop: '4px solid #3b82f6',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite',
-  },
-  loadingText: {
-    marginTop: '1rem',
-    fontSize: '0.875rem',
-    color: '#6b7280',
-  },
-  errorBanner: {
-    backgroundColor: '#fee2e2',
-    border: '1px solid #fecaca',
-    borderRadius: '0.5rem',
-    padding: '1rem',
-    marginBottom: '1.5rem',
-    color: '#991b1b',
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: '4rem 2rem',
-  },
-  emptyIcon: {
-    fontSize: '4rem',
-    marginBottom: '1.5rem',
-  },
-  emptyTitle: {
-    fontSize: '1.5rem',
-    fontWeight: '600',
-    color: '#1e293b',
-    marginBottom: '0.5rem',
-  },
-  emptyText: {
-    fontSize: '1rem',
-    color: '#64748b',
-    marginBottom: '2rem',
-  },
-  createButton: {
-    padding: '0.875rem 2rem',
-    backgroundColor: '#3b82f6',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.5rem',
-    fontSize: '1rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-  },
-  boardsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-    gap: '1.5rem',
-  },
-  boardCard: {
-    backgroundColor: 'white',
-    borderRadius: '0.75rem',
-    padding: '1.5rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    transition: 'transform 0.2s, box-shadow 0.2s',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-  },
-  boardCardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: '1rem',
-  },
-  boardTitle: {
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    color: '#1e293b',
-    margin: '0 0 0.5rem',
-  },
-  boardDescription: {
-    fontSize: '0.875rem',
-    color: '#64748b',
-    margin: 0,
-    lineHeight: '1.5',
-  },
-  roleBadge: {
-    padding: '0.25rem 0.75rem',
-    borderRadius: '9999px',
-    fontSize: '0.75rem',
-    fontWeight: '500',
-    textTransform: 'capitalize',
-    whiteSpace: 'nowrap',
-  },
-  badgeOwner: {
-    backgroundColor: '#fef3c7',
-    color: '#92400e',
-  },
-  badgeContributor: {
-    backgroundColor: '#dbeafe',
-    color: '#1e40af',
-  },
-  badgeReviewer: {
-    backgroundColor: '#e0e7ff',
-    color: '#3730a3',
-  },
-  badgeViewer: {
-    backgroundColor: '#f3f4f6',
-    color: '#374151',
-  },
-  boardMeta: {
-    display: 'flex',
-    gap: '1rem',
-    flexWrap: 'wrap',
-  },
-  metaItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  },
-  metaIcon: {
-    fontSize: '1rem',
-  },
-  metaText: {
-    fontSize: '0.875rem',
-    color: '#64748b',
-  },
-  boardActions: {
-    display: 'flex',
-    gap: '0.75rem',
-    marginTop: 'auto',
-  },
-  openButton: {
-    flex: 1,
-    padding: '0.625rem 1rem',
-    backgroundColor: '#3b82f6',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-  },
-  deleteButton: {
-    padding: '0.625rem 0.75rem',
-    backgroundColor: 'transparent',
-    border: '1px solid #e5e7eb',
-    borderRadius: '0.375rem',
-    fontSize: '1.125rem',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-  },
-  modalOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-  },
-  modal: {
-    backgroundColor: 'white',
-    borderRadius: '0.75rem',
-    padding: '2rem',
-    maxWidth: '500px',
-    width: '90%',
-    maxHeight: '90vh',
-    overflow: 'auto',
-  },
-  modalTitle: {
-    fontSize: '1.5rem',
-    fontWeight: '600',
-    color: '#1e293b',
-    marginBottom: '1.5rem',
-  },
-  errorMessage: {
-    backgroundColor: '#fee2e2',
-    border: '1px solid #fecaca',
-    borderRadius: '0.375rem',
-    padding: '0.75rem',
-    marginBottom: '1rem',
-    color: '#991b1b',
-    fontSize: '0.875rem',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-  },
-  formGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem',
-  },
-  label: {
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    color: '#374151',
-  },
-  input: {
-    padding: '0.625rem',
-    border: '1px solid #d1d5db',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem',
-    fontFamily: 'inherit',
-  },
-  checkboxLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    fontSize: '0.875rem',
-    color: '#374151',
-  },
-  checkbox: {
-    width: '1rem',
-    height: '1rem',
-  },
-  modalActions: {
-    display: 'flex',
-    gap: '0.75rem',
-    justifyContent: 'flex-end',
-    marginTop: '1rem',
-  },
-  cancelButton: {
-    padding: '0.625rem 1.25rem',
-    backgroundColor: 'white',
-    color: '#64748b',
-    border: '1px solid #cbd5e1',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-  },
-  submitButton: {
-    padding: '0.625rem 1.25rem',
-    backgroundColor: '#3b82f6',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-  },
-};
+// Styles moved to ../../styles/BoardsPage.styles.js
 
 // Manage Access Modal Component
 function ManageAccessModal({ boardId, onClose, onChanged }) {
