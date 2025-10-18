@@ -141,4 +141,69 @@ export const adminPageStyles = {
     color: '#64748b',
     lineHeight: '1.5',
   },
+  section: {
+    marginBottom: '2rem',
+  },
+  sectionTitle: {
+    fontSize: '1.25rem',
+    fontWeight: '600',
+    color: '#1e293b',
+    marginBottom: '1rem',
+  },
+  statsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '1.5rem',
+    marginBottom: '2rem',
+  },
+  statCard: {
+    backgroundColor: 'white',
+    borderRadius: '0.75rem',
+    padding: '1.5rem',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    border: '1px solid #e5e7eb',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+  },
+  statIcon: {
+    fontSize: '2rem',
+    flexShrink: 0,
+  },
+  statContent: {
+    flex: 1,
+  },
+  statTitle: {
+    fontSize: '0.875rem',
+    color: '#64748b',
+    margin: '0 0 0.25rem',
+    fontWeight: '500',
+  },
+  statValue: {
+    fontSize: '1.875rem',
+    fontWeight: 'bold',
+    margin: 0,
+  },
+  actionGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+    gap: '1.5rem',
+  },
+  actionCardDisabled: {
+    opacity: 0.6,
+    cursor: 'not-allowed',
+  },
+  activityCard: {
+    backgroundColor: 'white',
+    borderRadius: '0.75rem',
+    padding: '1.5rem',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    border: '1px solid #e5e7eb',
+  },
+  emptyState: {
+    textAlign: 'center',
+    color: '#64748b',
+    fontSize: '0.875rem',
+    margin: 0,
+  },
 };
